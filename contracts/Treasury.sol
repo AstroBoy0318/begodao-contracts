@@ -278,7 +278,7 @@ contract BegoikoTreasury is Ownable {
         isReserveToken[ _DAI ] = true;
         reserveTokens.push( _DAI );
 
-        isLiquidityToken[ _BEGODAI ] = true;
+        isLiquidityToken[ _BEGODAI ] = false;
         liquidityTokens.push( _BEGODAI );
 
 

@@ -179,6 +179,11 @@ async function main() {
         tx = await treasury.toggle('0', daiLpBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
 
+        var tx = await treasury.queue('5', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        await tx.wait();
+        tx = await treasury.toggle('5', daiLpBond.address, olympusBondingCalculator.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        await tx.wait();
+
         console.log("--------------treasury 1----------------")
             // Set DAI and Frax bond terms
         tx = await daiBond.initializeBondTerms(daiBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
@@ -222,6 +227,10 @@ async function main() {
         tx = await treasury.queue('4', deployer.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
 
         tx = await treasury.toggle('4', deployer.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+
+        tx = await treasury.queue('4', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+
+        tx = await treasury.toggle('4', daiLpBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         // Stake OHM through helper
     }
     console.log("-------------- environment ----------------");
