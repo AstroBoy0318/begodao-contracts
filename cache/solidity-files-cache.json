@@ -621,8 +621,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\Treasury.sol": {
-      "lastModificationDate": 1642386743569,
-      "contentHash": "96a10f4ea8463a5e1ee9b38a0a7ebbfe",
+      "lastModificationDate": 1642568784888,
+      "contentHash": "0252922708b0119cf94ce324dd33677f",
       "sourceName": "contracts/Treasury.sol",
       "solcConfig": {
         "version": "0.7.5",

@@ -37,7 +37,7 @@ async function main() {
     const zeroAddress = '0x0000000000000000000000000000000000000000';
 
     // DAI bond BCV
-    const daiBondBCV = '365';
+    const daiBondBCV = '369';
 
     // DAILP bond BCV
     const daiLPBondBCV = '500';
@@ -49,7 +49,7 @@ async function main() {
     const minBondPrice = '50000';
 
     // Max bond payout
-    const maxBondPayout = '500'
+    const maxBondPayout = '50000'
 
     // DAO fee for bond
     const bondFee = '10000';
@@ -174,14 +174,14 @@ async function main() {
         tx = await treasury.toggle('0', daiBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
 
-        var tx = await treasury.queue('0', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        tx = await treasury.queue('0', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
         tx = await treasury.toggle('0', daiLpBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
 
-        var tx = await treasury.queue('5', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        tx = await treasury.queue('5', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
-        tx = await treasury.toggle('5', daiLpBond.address, olympusBondingCalculator.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        tx = await treasury.toggle('5', daiLpBond.address, olympusBondingCalculator.address, { nonce: nonce++, gasLimit: "200000", gasPrice: "200000000000" });
         await tx.wait();
 
         console.log("--------------treasury 1----------------")
