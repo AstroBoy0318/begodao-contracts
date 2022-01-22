@@ -665,8 +665,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\BegoikoERC20.sol": {
-      "lastModificationDate": 1642476720112,
-      "contentHash": "b68981e9325f86cc2c81ea145f5659b9",
+      "lastModificationDate": 1642784391734,
+      "contentHash": "a24c1a33ebd10b2223b850db1fe826e1",
       "sourceName": "contracts/BegoikoERC20.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -794,6 +794,48 @@
         "SafeERC20",
         "SafeMath",
         "wBEGO"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\FarmingChef.sol": {
+      "lastModificationDate": 1642654178939,
+      "contentHash": "d314d065a149b54865ab1e846982aa1f",
+      "sourceName": "contracts/FarmingChef.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "IERC20",
+        "Masterchef",
+        "Ownable",
+        "ReentrancyGuard",
+        "SafeERC20",
+        "iBego"
       ]
     }
   }

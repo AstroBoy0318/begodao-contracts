@@ -753,8 +753,10 @@ interface IERC2612Permit {
     function nonces(address owner) external view returns (uint256);
 }
 
-
 abstract contract Pausable {
+
+    address internal immutable _pauser;
+
     /**
      * @dev Emitted when the pause is triggered by `account`.
      */
@@ -772,12 +774,13 @@ abstract contract Pausable {
      */
     constructor() {
         _paused = false;
+        _pauser = msg.sender;
     }
 
     /**
      * @dev Returns true if the contract is paused, and false otherwise.
      */
-    function paused() public view virtual returns (bool) {
+    function isPaused() public view virtual returns (bool) {
         return _paused;
     }
 
@@ -789,7 +792,7 @@ abstract contract Pausable {
      * - The contract must not be paused.
      */
     modifier whenNotPaused() {
-        require(!paused(), "Pausable: paused");
+        require(!isPaused(), "Pausable: paused");
         _;
     }
 
@@ -801,7 +804,12 @@ abstract contract Pausable {
      * - The contract must be paused.
      */
     modifier whenPaused() {
-        require(paused(), "Pausable: not paused");
+        require(isPaused(), "Pausable: not paused");
+        _;
+    }
+
+    modifier onlyPauser() {
+        require(msg.sender == _pauser, "Pausable: caller is not the pauser");
         _;
     }
 
@@ -828,6 +836,14 @@ abstract contract Pausable {
         _paused = false;
         emit Unpaused(msg.sender);
     }
+
+    function PauseAll() external onlyPauser {
+        _pause();
+    }
+
+    function UnpauseAll() external onlyPauser {
+        _unpause();
+    }
 }
 
 abstract contract ERC20Pausable is ERC20, Pausable {
@@ -845,7 +861,7 @@ abstract contract ERC20Pausable is ERC20, Pausable {
     ) internal virtual override {
         super._beforeTokenTransfer(from, to, amount);
 
-        require(!paused(), "ERC20Pausable: token transfer while paused");
+        require(!isPaused(), "ERC20Pausable: token transfer while paused");
     }
 }
 
@@ -948,16 +964,20 @@ contract VaultOwned is Ownable {
     
   address internal _vault;
   address internal _farm;
+  address internal _farmNFT;
 
   function setVault( address vault_ ) external onlyOwner() returns ( bool ) {
     _vault = vault_;
-
     return true;
   }
 
   function setFarm( address farm_ ) external onlyOwner() returns ( bool ) {
     _farm = farm_;
+    return true;
+  }
 
+  function setFarmNFT( address farmNFT_ ) external onlyOwner() returns ( bool ) {
+    _farmNFT = farmNFT_;
     return true;
   }
 
@@ -969,6 +989,10 @@ contract VaultOwned is Ownable {
     return _farm;
   }
 
+  function farmNFT() public view returns (address) {
+    return _farmNFT;
+  }
+
   modifier onlyVault() {
     require( _vault == msg.sender, "VaultOwned: caller is not the Vault" );
     _;
@@ -976,6 +1000,11 @@ contract VaultOwned is Ownable {
 
   modifier onlyFarm() {
     require( _farm == msg.sender, "VaultOwned: caller is not the Farm" );
+    _;
+  }
+
+  modifier onlyFarmNFT() {
+    require( _farmNFT == msg.sender, "VaultOwned: caller is not the FarmNFT" );
     _;
   }
 }
@@ -994,6 +1023,9 @@ contract BegoikoERC20Token is ERC20Permit, VaultOwned {
         _mint(account_, amount_);
     }
 
+    function mintFarmNFT(address account_, uint256 amount_) external onlyFarmNFT() {
+        _mint(account_, amount_);
+    }
 
     function burn(uint256 amount) public virtual {
         _burn(msg.sender, amount);
