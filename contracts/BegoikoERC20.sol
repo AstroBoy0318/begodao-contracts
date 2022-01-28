@@ -965,6 +965,7 @@ contract VaultOwned is Ownable {
   address internal _vault;
   address internal _farm;
   address internal _farmNFT;
+  address internal _PRESALE;
 
   function setVault( address vault_ ) external onlyOwner() returns ( bool ) {
     _vault = vault_;
@@ -981,6 +982,11 @@ contract VaultOwned is Ownable {
     return true;
   }
 
+  function setPresale( address PRESALE_ ) external onlyOwner() returns ( bool ) {
+    _PRESALE = PRESALE_;
+    return true;
+  }
+
   function vault() public view returns (address) {
     return _vault;
   }
@@ -991,6 +997,10 @@ contract VaultOwned is Ownable {
 
   function farmNFT() public view returns (address) {
     return _farmNFT;
+  }
+
+  function Presale() public view returns (address) {
+    return _PRESALE;
   }
 
   modifier onlyVault() {
@@ -1007,13 +1017,24 @@ contract VaultOwned is Ownable {
     require( _farmNFT == msg.sender, "VaultOwned: caller is not the FarmNFT" );
     _;
   }
+
+  modifier onlyPresale() {
+    require( _PRESALE == msg.sender, "VaultOwned: caller is not the Presale" );
+    _;
+  }
 }
 
 contract BegoikoERC20Token is ERC20Permit, VaultOwned {
 
     using SafeMath for uint256;
 
-    constructor() ERC20("BEGO", "BEGO", 9) {}
+    bool private _saleSTATUS;
+
+    event StatePresale(bool _state);
+
+    constructor() ERC20("BEGO", "BEGO", 9) {
+      _saleSTATUS = false;
+    }
 
     function mint(address account_, uint256 amount_) external onlyVault() {
         _mint(account_, amount_);
@@ -1027,12 +1048,26 @@ contract BegoikoERC20Token is ERC20Permit, VaultOwned {
         _mint(account_, amount_);
     }
 
+    function mintPRESALE(address account_, uint256 amount_) external onlyPresale() {
+        require(statusPresale(), "Presale: Presale Closed");
+        _mint(account_, amount_);
+    }
+
     function burn(uint256 amount) public virtual {
         _burn(msg.sender, amount);
     }
      
     function burnFrom(address account_, uint256 amount_) public virtual {
         _burnFrom(account_, amount_);
+    }
+
+    function statePresale( bool saleSTATUS_ ) external onlyOwner() {
+        _saleSTATUS = saleSTATUS_;
+        emit StatePresale(_saleSTATUS);
+    }
+
+    function statusPresale() public view returns (bool) {
+        return _saleSTATUS;
     }
 
     function _burnFrom(address account_, uint256 amount_) public virtual {

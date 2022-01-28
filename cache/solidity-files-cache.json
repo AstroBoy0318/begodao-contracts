@@ -665,8 +665,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\BegoikoERC20.sol": {
-      "lastModificationDate": 1642784391734,
-      "contentHash": "a24c1a33ebd10b2223b850db1fe826e1",
+      "lastModificationDate": 1643273796501,
+      "contentHash": "ceb81f22d82f9487f80c013f16ab1d1b",
       "sourceName": "contracts/BegoikoERC20.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -797,8 +797,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\FarmingChef.sol": {
-      "lastModificationDate": 1642654178939,
-      "contentHash": "d314d065a149b54865ab1e846982aa1f",
+      "lastModificationDate": 1642900141543,
+      "contentHash": "8a0e1d5fbddba9c838422a5b6ebbc75c",
       "sourceName": "contracts/FarmingChef.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -836,6 +836,89 @@
         "ReentrancyGuard",
         "SafeERC20",
         "iBego"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\pBego.sol": {
+      "lastModificationDate": 1643339331907,
+      "contentHash": "7f9b6e46fff501df3ba12ff03553462b",
+      "sourceName": "contracts/presale/pBego.sol",
+      "solcConfig": {
+        "version": "0.7.5",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.7.5"
+      ],
+      "artifacts": [
+        "ERC20",
+        "IERC20",
+        "IOwnable",
+        "Ownable",
+        "SafeMath",
+        "ipBego",
+        "pBego"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\Presale.sol": {
+      "lastModificationDate": 1643343735480,
+      "contentHash": "aa07a7324488feb07bd7f7ef7fcd3779",
+      "sourceName": "contracts/presale/Presale.sol",
+      "solcConfig": {
+        "version": "0.7.5",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.7.5"
+      ],
+      "artifacts": [
+        "Address",
+        "IERC20",
+        "IOwnable",
+        "IPancakeswapRouter",
+        "Ownable",
+        "Presale",
+        "SafeERC20",
+        "SafeMath"
       ]
     }
   }

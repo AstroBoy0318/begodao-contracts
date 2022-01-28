@@ -46,16 +46,16 @@ async function main() {
     const bondVestingLength = '33110';
 
     // Min bond price
-    const minBondPrice = '50000';
+    const minBondPrice = '0';
 
     // Max bond payout
-    const maxBondPayout = '50000'
+    const maxBondPayout = '6239676'
 
     // DAO fee for bond
     const bondFee = '10000';
 
     // Max debt bond can take on
-    const maxBondDebt = '1000000000000000';
+    const maxBondDebt = '16520000000000';
 
     // Initial Bond debt
     const intialBondDebt = '0'
@@ -143,6 +143,16 @@ async function main() {
     const SOHM = await ethers.getContractFactory('sBegoiko');
     const sOHM = await SOHM.deploy({ nonce: nonce++ });
     //await sOHM.deployed();
+
+    // Deploy Presale
+    const Presale = await ethers.getContractFactory('Presale');
+    const presale = await Presale.deploy({ nonce: nonce++ });
+    tx = await presale.initialize(ohm.address, dai.address, '1000000000', '100000000000', '100000000000', '1000000000000000000', { nonce: nonce++ });
+    await tx.wait();
+    tx = await ohm.setPresale(presale.address, { nonce: nonce++ });
+    await tx.wait();
+    tx = await ohm.statePresale(true, { nonce: nonce++ });
+    await tx.wait();
 
     // Deploy Staking
     const Staking = await ethers.getContractFactory('BegoikoStaking');
@@ -259,11 +269,11 @@ async function main() {
 
     console.log(ethers.utils.formatUnits(await daiBond.payoutFor("10000000000000000000"), 18));
 
-    await daiBond.deposit('10000000000000000000', '60000', deployer.address, { nonce: nonce++ });
+    // await daiBond.deposit('10000000000000000000', '60000', deployer.address, { nonce: nonce++ });
 
     console.log("-------------- Exchange add liquidity ----------------"); {
         //dai, wFTM - ohm add liquidity
-        {
+        if (false) {
 
             tx = await ohm.approve(exchangeRouter.address, ethers.utils.parseUnits("100000000", 9), { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
 

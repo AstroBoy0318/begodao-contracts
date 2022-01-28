@@ -550,7 +550,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
     address public feeAdd;
 
     uint256 private constant MAXMINT = 10000 ether;
-    uint256 public TOTALMINTED;
+    uint256 private TOTALMINTED;
     bool public isMintable;
     
     uint256 public begoPerSec = 0.01 ether;
@@ -569,7 +569,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
     }
 
     event UpdateFeeAddress(address indexed user, address indexed newAddress);
-    event UpdateMintable(bool _isMintable);
+    event UpdateMintable(bool isMintable);
     event Add(uint256 indexed pid, address lpToken, uint256 allocPoint, uint16 depositFeeBP);
     event Set(uint256 indexed pid, address lpToken, uint256 allocPoint, uint16 depositFeeBP);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -584,6 +584,10 @@ contract Masterchef is Ownable, ReentrancyGuard {
         feeAdd = _feeAdd;
 
         isMintable = false;
+    }
+
+    function TotalMinted() external view returns (uint256) {
+        return TOTALMINTED;
     }
 
     function poolLength() external view returns (uint256) {
