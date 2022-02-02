@@ -39,6 +39,9 @@ async function main() {
     // DAI bond BCV
     const daiBondBCV = '369';
 
+    // WFTM bond BCV
+    const wFTMBondBCV = '300';
+
     // DAILP bond BCV
     const daiLPBondBCV = '500';
 
@@ -46,7 +49,7 @@ async function main() {
     const bondVestingLength = '33110';
 
     // Min bond price
-    const minBondPrice = '0';
+    const minBondPrice = '50';
 
     // Max bond payout
     const maxBondPayout = '6239676'
@@ -82,7 +85,7 @@ async function main() {
     // var wETH;
     // const ohmAddress = "0xFEA12359959B382eD70c3d77Ee1d3ecbA2af5E6A";
     const daiAddress = "0x3A5b6631aD2Bd2b82fd3C5c4007937F14fa809b9";
-    // const wFTMAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
+    const wFTMAddress = "0xf1903E0264FaC93Be0163c142DB647B93b3ce0d4";
     const exchangeRouterAddress = "0x405fec416E850Ca37DFdfa103A0e307fc0BAe1ac";
     const exchangeFactoryAddress = "0xb2C9d73f632E6e99C3B21AC8E96a71c2d0d33039";
 
@@ -144,14 +147,21 @@ async function main() {
     const sOHM = await SOHM.deploy({ nonce: nonce++ });
     //await sOHM.deployed();
 
+    // Deploy pBego
+    const PBego = await ethers.getContractFactory('pBego');
+    const pBego = await PBego.deploy({ nonce: nonce++ });
+
     // Deploy Presale
     const Presale = await ethers.getContractFactory('Presale');
     const presale = await Presale.deploy({ nonce: nonce++ });
-    tx = await presale.initialize(ohm.address, dai.address, '1000000000', '100000000000', '100000000000', '1000000000000000000', { nonce: nonce++ });
+    tx = await presale.initialize(ohm.address, pBego.address, dai.address, '1000000000', '100000000000', '10000000000000', DAO.address, { nonce: nonce++ });
     await tx.wait();
     tx = await ohm.setPresale(presale.address, { nonce: nonce++ });
     await tx.wait();
     tx = await ohm.statePresale(true, { nonce: nonce++ });
+    await tx.wait();
+
+    tx = await pBego.setPresale(presale.address, { nonce: nonce++ });
     await tx.wait();
 
     // Deploy Staking
@@ -175,6 +185,8 @@ async function main() {
 
     const daiLpBond = await DAIBond.deploy(ohm.address, daiLP, treasury.address, DAO.address, olympusBondingCalculator.address, { nonce: nonce++ });
 
+    const wftmBond = await DAIBond.deploy(ohm.address, wFTMAddress, treasury.address, DAO.address, zeroAddress, { nonce: nonce++ });
+
     console.log("--------------deploy finish----------------")
 
     {
@@ -182,6 +194,11 @@ async function main() {
         var tx = await treasury.queue('0', daiBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
         tx = await treasury.toggle('0', daiBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        await tx.wait();
+
+        tx = await treasury.queue('0', wftmBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        await tx.wait();
+        tx = await treasury.toggle('0', wftmBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         await tx.wait();
 
         tx = await treasury.queue('0', daiLpBond.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
@@ -197,11 +214,13 @@ async function main() {
         console.log("--------------treasury 1----------------")
             // Set DAI and Frax bond terms
         tx = await daiBond.initializeBondTerms(daiBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
+        tx = await wftmBond.initializeBondTerms(wFTMBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
         tx = await daiLpBond.initializeBondTerms(daiLPBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
 
 
         // Set staking for DAI and Frax bond
         tx = await daiBond.setStaking(staking.address, stakingHelper.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
+        tx = await wftmBond.setStaking(staking.address, stakingHelper.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         tx = await daiLpBond.setStaking(staking.address, stakingHelper.address, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
 
 
@@ -250,14 +269,14 @@ async function main() {
     var tx = await dai.approve(daiBond.address, largeApproval, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
 
     //100,000,000,000,000,000,000
-    tx = await treasury.deposit('100000000000000000000', dai.address, '50000000000', { nonce: nonce++, gasLimit: "200000", gasPrice: "200000000000" });
+    // tx = await treasury.deposit('100000000000000000000', dai.address, '50000000000', { nonce: nonce++, gasLimit: "200000", gasPrice: "200000000000" });
 
     console.log(" bego.balanceOf", String(await ohm.balanceOf(deployer.address)))
     console.log(" dai.balanceOf", String(await dai.balanceOf(deployer.address)))
 
-    console.log("debtRatio", ethers.utils.formatUnits(await daiBond.debtRatio()));
+    // console.log("debtRatio", ethers.utils.formatUnits(await daiBond.debtRatio()));
 
-    console.log("bondPriceInUSD", ethers.utils.formatUnits(await daiBond.bondPriceInUSD()));
+    // console.log("bondPriceInUSD", ethers.utils.formatUnits(await daiBond.bondPriceInUSD()));
 
 
     try {
@@ -267,7 +286,7 @@ async function main() {
         console.log("staking error", err);
     }
 
-    console.log(ethers.utils.formatUnits(await daiBond.payoutFor("10000000000000000000"), 18));
+    // console.log(ethers.utils.formatUnits(await daiBond.payoutFor("10000000000000000000"), 18));
 
     // await daiBond.deposit('10000000000000000000', '60000', deployer.address, { nonce: nonce++ });
 
@@ -304,8 +323,8 @@ async function main() {
     var end = new Date().getTime();
 
 
-    console.log("LP debtRatio", ethers.utils.formatUnits(await daiLpBond.debtRatio()));
-    console.log("LP bondPriceInUSD", ethers.utils.formatUnits(await daiLpBond.bondPriceInUSD()));
+    // console.log("LP debtRatio", ethers.utils.formatUnits(await daiLpBond.debtRatio()));
+    // console.log("LP bondPriceInUSD", ethers.utils.formatUnits(await daiLpBond.bondPriceInUSD()));
 
     console.log("deploy ended ", (Number(end) - startTIme) / 1000)
 
@@ -320,10 +339,16 @@ async function main() {
     console.log("DISTRIBUTOR_ADDRESS: ", distributor.address);
     console.log("BONDINGCALC_ADDRESS: ", olympusBondingCalculator.address);
     console.log("TREASURY_ADDRESS: ", treasury.address);
+    console.log("PRESALE_ADDRESS: ", presale.address);
+    console.log("PBEGO_ADDRESS: ", pBego.address);
 
     console.log("DAI ---------- ");
     console.log('bondAddress: "' + daiBond.address + '"');
     console.log('reserveAddress: "' + dai.address + '"');
+
+    console.log("WFTM ---------- ");
+    console.log('bondAddress: "' + wftmBond.address + '"');
+    console.log('reserveAddress: "' + wFTMAddress + '"');
 
     console.log('LP ---------- "');
     console.log('bondAddress: "' + daiLpBond.address + '"');

@@ -880,8 +880,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\Presale.sol": {
-      "lastModificationDate": 1643343735480,
-      "contentHash": "aa07a7324488feb07bd7f7ef7fcd3779",
+      "lastModificationDate": 1643432204960,
+      "contentHash": "05052ac3261db2f2572353224557588c",
       "sourceName": "contracts/presale/Presale.sol",
       "solcConfig": {
         "version": "0.7.5",

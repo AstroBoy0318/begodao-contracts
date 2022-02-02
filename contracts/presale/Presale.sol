@@ -273,11 +273,12 @@ contract Presale is Ownable {
   uint256 public claimTime = 1 hours;
 
   mapping(address => bool) public boughtTokens;
-  enum LEVELS { NOT_LISTED, BRONZE, SILVER, GOLD }
+  enum LEVELS { NOT_LISTED, CONTEST_RAFFLE, BOOST, BRONZE, PLATIUM, GOLDEN, OG }
   mapping(address => LEVELS) public whiteListed;
   mapping(LEVELS => uint256) public salePrice;
   mapping(LEVELS => uint8) public numberOfMembers;
   mapping(LEVELS => uint256) public maxPurchaseAmount;
+  mapping(LEVELS => uint8) public membersForLevels;
 
   uint256 public addLiquidityTime;
 
@@ -286,13 +287,20 @@ contract Presale is Ownable {
 
   function whitelistUsers(address[] memory addresses, LEVELS level) public onlyOwner {
     for (uint256 i = 0; i < addresses.length; i++) {
-      whiteListed[addresses[i]] = level;
+      if(whiteListed[addresses[i]] == LEVELS.NOT_LISTED) {
+        membersForLevels[level] = membersForLevels[level]+1;
+        whiteListed[addresses[i]] = level;
+      }
     }
+    require(membersForLevels[level] <= numberOfMembers[level], "Number of members exceeds.");
   }
 
   function unwhitelistUsers(address[] memory addresses) public onlyOwner {
-    for (uint256 i = 0; i < addresses.length; i++) {
-      whiteListed[addresses[i]] = LEVELS.NOT_LISTED;
+    for (uint256 i = 0; i < addresses.length; i++) {      
+      if(whiteListed[addresses[i]] != LEVELS.NOT_LISTED) {
+        membersForLevels[whiteListed[addresses[i]]] = membersForLevels[whiteListed[addresses[i]]]-1;
+        whiteListed[addresses[i]] = LEVELS.NOT_LISTED;
+      }
     }
   }
 
@@ -325,8 +333,6 @@ contract Presale is Ownable {
   }
 
   function purchase(uint256 _val) external returns (bool) {
-    require(_val >= minAmount, "Below minimum allocation");
-    require(_val <= maxAmount, "More than allocation");
     require(openIdo == true, "IDO is closed");
     require(
       boughtTokens[msg.sender] == false,
@@ -334,6 +340,8 @@ contract Presale is Ownable {
     );
     uint256 nowTime = block.timestamp;
     uint256 _purchaseAmount = _calculateSaleQuote(_val);
+    require(_purchaseAmount >= minAmount, "Below minimum allocation");
+    require(_purchaseAmount <= maxAmount, "More than allocation");
     sellAmount = sellAmount.add(_purchaseAmount);
     require(sellAmount <= totalAmont, "The amount entered exceeds IDO Goal");
 
