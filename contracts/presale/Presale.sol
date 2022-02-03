@@ -261,7 +261,7 @@ contract Presale is Ownable {
 
   uint256 public minAmount;
   uint256 public maxAmount;
-  uint256 public totalAmont;
+  uint256 public totalAmount;
   uint256 public sellAmount;
 
   bool public openIdo = false;
@@ -311,14 +311,14 @@ contract Presale is Ownable {
     address _dai,
     uint256 _minAmount,
     uint256 _maxAmount,
-    uint256 _totalAmont,
+    uint256 _totalAmount,
     address _DAO
   ) external onlyOwner returns (bool) {
     begoTOKEN = _begoTOKEN;
     dai = _dai;
     minAmount = _minAmount;
     maxAmount = _maxAmount;
-    totalAmont = _totalAmont;
+    totalAmount = _totalAmount;
     DAO = _DAO;
     return true;
   }
@@ -328,22 +328,46 @@ contract Presale is Ownable {
     saleStartTime = block.timestamp;
   }
 
+  function isOpenForUser(address _user) external view returns (bool) {
+    if(!openIdo || boughtTokens[_user])
+      return false;
+    LEVELS level = whiteListed[_user];
+    uint256 privateSaleEndTime = saleStartTime.add(privateSalePeriod);
+    uint256 publicSaleEndTime = privateSaleEndTime.add(publicSalePeriod);
+    if(level == LEVELS.NOT_LISTED) {
+      return block.timestamp >= privateSaleEndTime && block.timestamp <= publicSaleEndTime;
+    } else {
+      return block.timestamp < privateSaleEndTime && block.timestamp > saleStartTime;
+    }
+  }
+
   function isWhitelisted(address _user) public view returns (LEVELS) {
     return whiteListed[_user];
   }
 
-  function purchase(uint256 _val) external returns (bool) {
+  function getMaxPurchaseAmount(address _user) external view returns (uint256) {
+    LEVELS level = whiteListed[_user];
+    uint256 maxAmount1 = maxPurchaseAmount[level];
+    uint256 daiVal = IERC20(dai).balanceOf(_user);
+    uint256 price = salePrice[level];
+    uint256 maxAmount2 = daiVal.div(price).mul(uint256(1e9));
+    return maxAmount1 > maxAmount2 ? maxAmount2 : maxAmount1;
+  }
+
+  function purchase(uint256 _purchaseAmount) external returns (bool) {
     require(openIdo == true, "IDO is closed");
     require(
       boughtTokens[msg.sender] == false,
       "You've already participated to the IDO."
     );
     uint256 nowTime = block.timestamp;
-    uint256 _purchaseAmount = _calculateSaleQuote(_val);
+    uint256 _val = _calculateSaleQuote(_purchaseAmount);
+    uint256 daiVal = IERC20(dai).balanceOf(msg.sender);
+    require(daiVal >= _val, "Insufficient dai balance.");
     require(_purchaseAmount >= minAmount, "Below minimum allocation");
     require(_purchaseAmount <= maxAmount, "More than allocation");
     sellAmount = sellAmount.add(_purchaseAmount);
-    require(sellAmount <= totalAmont, "The amount entered exceeds IDO Goal");
+    require(sellAmount <= totalAmount, "The amount entered exceeds IDO Goal");
 
     if (nowTime < saleStartTime.add(privateSalePeriod)) {
       require(whiteListed[msg.sender] != LEVELS.NOT_LISTED, "You're not Whitelisted.");
@@ -429,27 +453,27 @@ contract Presale is Ownable {
     salePrice[level] = _salePrice;
   }
 
-  function _calculateSaleQuote(uint256 paymentAmount_)
+  function _calculateSaleQuote(uint256 purchaseAmount_)
     internal
     view
     returns (uint256)
   {
-    return uint256(1e9).mul(paymentAmount_).div(salePrice[whiteListed[msg.sender]]);
+    return purchaseAmount_.mul(salePrice[whiteListed[msg.sender]]).div(uint256(1e9));
   }
 
-  function _calculateSaleQuoteWithPrice(uint256 paymentAmount_, uint256 price)
+  function _calculateSaleQuoteWithPrice(uint256 purchaseAmount_, uint256 price)
     internal
     pure
     returns (uint256)
   {
-    return uint256(1e9).mul(paymentAmount_).div(price);
+    return uint256(1e9).mul(purchaseAmount_).mul(price);
   }
 
-  function calculateSaleQuote(uint256 paymentAmount_)
+  function calculateSaleQuote(uint256 purchaseAmount_)
     external
     view
     returns (uint256)
   {
-    return _calculateSaleQuote(paymentAmount_);
+    return _calculateSaleQuote(purchaseAmount_);
   }
 }
