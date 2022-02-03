@@ -147,21 +147,14 @@ async function main() {
     const sOHM = await SOHM.deploy({ nonce: nonce++ });
     //await sOHM.deployed();
 
-    // Deploy pBego
-    const PBego = await ethers.getContractFactory('pBego');
-    const pBego = await PBego.deploy({ nonce: nonce++ });
-
     // Deploy Presale
     const Presale = await ethers.getContractFactory('Presale');
     const presale = await Presale.deploy({ nonce: nonce++ });
-    tx = await presale.initialize(ohm.address, pBego.address, dai.address, '1000000000', '100000000000', '10000000000000', DAO.address, { nonce: nonce++ });
+    tx = await presale.initialize(ohm.address, dai.address, '1000000000', '100000000000', '10000000000000', DAO.address, { nonce: nonce++ });
     await tx.wait();
     tx = await ohm.setPresale(presale.address, { nonce: nonce++ });
     await tx.wait();
     tx = await ohm.statePresale(true, { nonce: nonce++ });
-    await tx.wait();
-
-    tx = await pBego.setPresale(presale.address, { nonce: nonce++ });
     await tx.wait();
 
     // Deploy Staking
@@ -340,7 +333,6 @@ async function main() {
     console.log("BONDINGCALC_ADDRESS: ", olympusBondingCalculator.address);
     console.log("TREASURY_ADDRESS: ", treasury.address);
     console.log("PRESALE_ADDRESS: ", presale.address);
-    console.log("PBEGO_ADDRESS: ", pBego.address);
 
     console.log("DAI ---------- ");
     console.log('bondAddress: "' + daiBond.address + '"');
