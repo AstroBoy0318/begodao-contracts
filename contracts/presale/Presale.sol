@@ -22,7 +22,6 @@ interface IERC20 {
     uint256 amount
   ) external returns (bool);
 
-  function mintPBEGO(address account_, uint256 amount_) external;
 
   function mintPRESALE(address account_, uint256 amount_) external;
 
@@ -258,7 +257,6 @@ contract Presale is Ownable {
   address public DAO;
 
   address public begoTOKEN;
-  address public pbegoTOKEN;
   address public dai;
 
   uint256 public minAmount;
@@ -271,6 +269,10 @@ contract Presale is Ownable {
   uint256 public privateSalePeriod = 1 days;
   uint256 public publicSalePeriod = 2 days;
   uint256 public claimTime = 1 hours;
+  mapping(address => uint256) public purchasedAmount;
+  mapping(address => uint256) public claimedAmount; 
+  mapping(address => uint256) public claimedTime;
+  uint256 public claimInterval = 1 days;
 
   mapping(address => bool) public boughtTokens;
   enum LEVELS { NOT_LISTED, CONTEST_RAFFLE, BOOST, BRONZE, PLATIUM, GOLDEN, OG }
@@ -306,7 +308,6 @@ contract Presale is Ownable {
 
   function initialize(
     address _begoTOKEN,
-    address _pbegoTOKEN,
     address _dai,
     uint256 _minAmount,
     uint256 _maxAmount,
@@ -314,7 +315,6 @@ contract Presale is Ownable {
     address _DAO
   ) external onlyOwner returns (bool) {
     begoTOKEN = _begoTOKEN;
-    pbegoTOKEN = _pbegoTOKEN;
     dai = _dai;
     minAmount = _minAmount;
     maxAmount = _maxAmount;
@@ -355,20 +355,22 @@ contract Presale is Ownable {
 
     boughtTokens[msg.sender] = true;
     IERC20(dai).safeTransferFrom(msg.sender, address(this), _val);
-    IERC20(pbegoTOKEN).mintPBEGO(address(this), _purchaseAmount);
     IERC20(begoTOKEN).mintPRESALE(address(this), _purchaseAmount.mul(2));
-    IERC20(pbegoTOKEN).safeTransfer(msg.sender, _purchaseAmount);
+    purchasedAmount[msg.sender] = _purchaseAmount;
     return true;
   }
 
   function claim() external returns (bool) {
     // To do
     require(addLiquidityTime.add(claimTime) < block.timestamp, "Can't claim now. please wait.");
-    uint256 _purchaseAmount = IERC20(pbegoTOKEN).balanceOf(msg.sender);
-    require(_purchaseAmount > 0, "Can't claim without any pBego");
-    IERC20(pbegoTOKEN).safeTransferFrom(msg.sender, address(this), _purchaseAmount);
-    IERC20(pbegoTOKEN).burn(_purchaseAmount);
-    IERC20(begoTOKEN).safeTransfer(msg.sender, _purchaseAmount);
+    uint256 _purchaseAmount = purchasedAmount[msg.sender];
+    require(_purchaseAmount > 0, "Can't claim.");
+    require(block.timestamp.sub(claimedTime[msg.sender]) > claimInterval, "Can't claim now");
+    require(_purchaseAmount > claimedAmount[msg.sender], "Can't claim any more.");
+    uint256 claimAmount = _purchaseAmount.div(5);
+    IERC20(begoTOKEN).safeTransfer(msg.sender, claimAmount);
+    claimedAmount[msg.sender] = claimedAmount[msg.sender].add(claimAmount);
+    claimedTime[msg.sender] = block.timestamp;
     return true;
   }      
 
