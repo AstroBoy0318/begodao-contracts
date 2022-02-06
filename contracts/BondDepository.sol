@@ -830,17 +830,17 @@ contract BegoikoBondDepository is Ownable {
         uint nativePrice = _bondPrice();
 
         require( _maxPrice >= nativePrice, "Slippage limit: more than max price" ); // slippage protection
+        // profits are calculated
+        uint fee = _amount.mul( terms.fee ).div( 10000 );
 
-        uint value = ITreasury( treasury ).valueOf( principle, _amount );
+        uint value = ITreasury( treasury ).valueOf( principle, _amount.sub(fee) );
         uint payout = payoutFor( value ); // payout to bonder is computed
 
-        require( payout >= 10000000, "Bond too small" ); // must be > 0.01 OHM ( underflow protection )
+        // require( payout >= 10000000, "Bond too small" ); // must be > 0.01 OHM ( underflow protection )
         require( payout <= maxPayout(), "Bond too large"); // size protection because there is no slippage
 
-        // profits are calculated
-        uint fee = payout.mul( terms.fee ).div( 10000 );
         // console.log("value %s payout to %s fee %s", value, payout ,fee );
-        uint profit = value.sub( payout ).sub( fee );
+        uint profit = value.sub( payout );
 
         /**
             principle is transferred in
@@ -848,11 +848,11 @@ contract BegoikoBondDepository is Ownable {
             deposited into the treasury, returning (_amount - profit) OHM
          */
         IERC20( principle ).safeTransferFrom( msg.sender, address(this), _amount );
-        IERC20( principle ).approve( address( treasury ), _amount );
-        ITreasury( treasury ).deposit( _amount, principle, profit );
+        IERC20( principle ).approve( address( treasury ), _amount.sub(fee) );
+        ITreasury( treasury ).deposit( _amount.sub(fee), principle, profit );
         
         if ( fee != 0 ) { // fee is transferred to dao 
-            IERC20( BEGO ).safeTransfer( DAO, fee ); 
+            IERC20( principle ).safeTransfer( DAO, fee ); 
         }
         
         // total debt is increased

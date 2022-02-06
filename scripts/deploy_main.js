@@ -22,7 +22,7 @@ async function main() {
     const initialIndex = '7675210820';
 
     // First block epoch occurs
-    const firstEpochBlock = '6567007';
+    const firstEpochBlock = '30138071';
 
     // What epoch will be first epoch
     const firstEpochNumber = '1';
@@ -49,16 +49,16 @@ async function main() {
     const bondVestingLength = '33110';
 
     // Min bond price
-    const minBondPrice = '0';
+    const minBondPrice = '500';
 
     // Max bond payout
-    const maxBondPayout = '75'
+    const maxBondPayout = '6239676'
 
     // DAO fee for bond
     const bondFee = '200';
 
     // Max debt bond can take on
-    const maxBondDebt = '1000000000000000000000000';
+    const maxBondDebt = '16520000000000';
 
     // Initial Bond debt
     const intialBondDebt = '0'
@@ -84,10 +84,10 @@ async function main() {
     // var exchangeFactory;
     // var wETH;
     // const ohmAddress = "0xFEA12359959B382eD70c3d77Ee1d3ecbA2af5E6A";
-    const daiAddress = "0x3A5b6631aD2Bd2b82fd3C5c4007937F14fa809b9";
-    const wFTMAddress = "0xf1903E0264FaC93Be0163c142DB647B93b3ce0d4";
-    const exchangeRouterAddress = "0x405fec416E850Ca37DFdfa103A0e307fc0BAe1ac";
-    const exchangeFactoryAddress = "0xb2C9d73f632E6e99C3B21AC8E96a71c2d0d33039";
+    const daiAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e";
+    const wFTMAddress = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83";
+    const exchangeRouterAddress = "0xF491e7B69E4244ad4002BC14e878a34207E38c29";
+    const exchangeFactoryAddress = "0x152ee697f2e276fa89e96742e9bb9ab1f2e61be3";
 
     // const ohm = new ethers.Contract(ohmAddress, OHMContractABI, deployer);
 
@@ -150,7 +150,7 @@ async function main() {
     // Deploy Presale
     const Presale = await ethers.getContractFactory('Presale');
     const presale = await Presale.deploy({ nonce: nonce++ });
-    tx = await presale.initialize(ohm.address, dai.address, '10000000', '100000000000', DAO.address, { nonce: nonce++ });
+    tx = await presale.initialize(ohm.address, dai.address, '100000000', '100000000000', '10000000000000', DAO.address, { nonce: nonce++ });
     await tx.wait();
     tx = await ohm.setPresale(presale.address, { nonce: nonce++ });
     await tx.wait();
@@ -266,9 +266,6 @@ async function main() {
     var tx = await ohm.approve(stakingHelper.address, '1000000000000000000000000', { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
     var tx = await dai.approve(daiBond.address, largeApproval, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
 
-    //100,000,000,000,000,000,000
-    tx = await treasury.deposit('100000000000000000000', dai.address, '50000000000', { nonce: nonce++, gasLimit: "200000", gasPrice: "200000000000" });
-
     console.log(" bego.balanceOf", String(await ohm.balanceOf(deployer.address)))
     console.log(" dai.balanceOf", String(await dai.balanceOf(deployer.address)))
 
@@ -276,48 +273,12 @@ async function main() {
 
     // console.log("bondPriceInUSD", ethers.utils.formatUnits(await daiBond.bondPriceInUSD()));
 
-
-    try {
-        var tx = await stakingHelper.stake('10000000000', { nonce: nonce++ });
-        await tx.wait();
-    } catch (err) {
-        console.log("staking error", err);
-    }
-
     // console.log(ethers.utils.formatUnits(await daiBond.payoutFor("10000000000000000000"), 18));
 
     // await daiBond.deposit('10000000000000000000', '60000', deployer.address, { nonce: nonce++ });
-
-    console.log("-------------- Exchange add liquidity ----------------"); {
-        //dai, wFTM - ohm add liquidity
-        if (true) {
-
-            tx = await ohm.approve(exchangeRouter.address, ethers.utils.parseUnits("100000000", 9), { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
-
-            tx = await dai.approve(exchangeRouter.address, ethers.utils.parseUnits("1000000", 18), { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
-
-            console.log(ethers.utils.formatUnits(await ohm.allowance(deployer.address, exchangeRouter.address), 9));
-            console.log(ethers.utils.formatUnits(await dai.allowance(deployer.address, exchangeRouter.address), 18));
-
-            try {
-                //DAI
-                var tx = await exchangeRouter.addLiquidity(
-                    ohm.address,
-                    dai.address,
-                    ethers.utils.parseUnits("10", 9),
-                    ethers.utils.parseUnits("10", 18),
-                    0,
-                    0,
-                    deployer.address,
-                    "111111111111111111111", { nonce: nonce++, gasLimit: "500000", gasPrice: "200000000000" }
-                );
-            } catch (err) {
-                console.log("err", err)
-            }
-        }
-        console.log("OHM: " + ohm.address);
-        console.log("DAI: " + dai.address);
-    }
+    //dai, wFTM - ohm add liquidity
+    console.log("OHM: " + ohm.address);
+    console.log("DAI: " + dai.address);
     var end = new Date().getTime();
 
 

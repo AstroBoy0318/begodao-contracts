@@ -260,7 +260,6 @@ contract Presale is Ownable {
   address public dai;
 
   uint256 public minAmount;
-  uint256 public maxAmount;
   uint256 public totalAmount;
   uint256 public sellAmount;
 
@@ -310,14 +309,12 @@ contract Presale is Ownable {
     address _begoTOKEN,
     address _dai,
     uint256 _minAmount,
-    uint256 _maxAmount,
     uint256 _totalAmount,
     address _DAO
   ) external onlyOwner returns (bool) {
     begoTOKEN = _begoTOKEN;
     dai = _dai;
     minAmount = _minAmount;
-    maxAmount = _maxAmount;
     totalAmount = _totalAmount;
     DAO = _DAO;
     return true;
@@ -351,7 +348,22 @@ contract Presale is Ownable {
     uint256 daiVal = IERC20(dai).balanceOf(_user);
     uint256 price = salePrice[level];
     uint256 maxAmount2 = daiVal.div(price).mul(uint256(1e9));
+    uint256 remainedAmount = totalAmount.sub(sellAmount);
+    if(remainedAmount < maxAmount1)
+      maxAmount1 = remainedAmount;
     return maxAmount1 > maxAmount2 ? maxAmount2 : maxAmount1;
+  }
+
+  function getClaimable() external view returns (bool) {
+    if(addLiquidityTime == 0)
+      return false;
+    return addLiquidityTime.add(claimTime) < block.timestamp;
+  }
+
+  function getTimeForClaim(address _user) external view returns (uint256) {
+    if(claimedTime[_user].add(claimInterval) < block.timestamp)
+      return 0;
+    return block.timestamp.sub(claimedTime[_user]);
   }
 
   function purchase(uint256 _purchaseAmount) external returns (bool) {
@@ -363,6 +375,7 @@ contract Presale is Ownable {
     uint256 nowTime = block.timestamp;
     uint256 _val = _calculateSaleQuote(_purchaseAmount);
     uint256 daiVal = IERC20(dai).balanceOf(msg.sender);
+    uint256 maxAmount = maxPurchaseAmount[whiteListed[msg.sender]];
     require(daiVal >= _val, "Insufficient dai balance.");
     require(_purchaseAmount >= minAmount, "Below minimum allocation");
     require(_purchaseAmount <= maxAmount, "More than allocation");
@@ -371,8 +384,6 @@ contract Presale is Ownable {
 
     if (nowTime < saleStartTime.add(privateSalePeriod)) {
       require(whiteListed[msg.sender] != LEVELS.NOT_LISTED, "You're not Whitelisted.");
-      uint256 _maxPurchaseAmount = maxPurchaseAmount[whiteListed[msg.sender]];
-      require(_purchaseAmount <= _maxPurchaseAmount, "The amount entered exceeds max amout.");
     } else {
       require(nowTime < saleStartTime.add(privateSalePeriod).add(publicSalePeriod), "Presale is finished.");
     }
@@ -386,7 +397,7 @@ contract Presale is Ownable {
 
   function claim() external returns (bool) {
     // To do
-    require(addLiquidityTime.add(claimTime) < block.timestamp, "Can't claim now. please wait.");
+    require(addLiquidityTime != 0 && addLiquidityTime.add(claimTime) < block.timestamp, "Can't claim now. please wait.");
     uint256 _purchaseAmount = purchasedAmount[msg.sender];
     require(_purchaseAmount > 0, "Can't claim.");
     require(block.timestamp.sub(claimedTime[msg.sender]) > claimInterval, "Can't claim now");
@@ -400,12 +411,13 @@ contract Presale is Ownable {
 
   function addLiquidity(IPancakeswapRouter router, uint256 begoPrice) external onlyOwner {
     // To do
+    openIdo = false;
     uint256 daiAmount = IERC20(dai).balanceOf(address(this));
     uint256 begoAmount = IERC20(begoTOKEN).balanceOf(address(this));
 
     uint256 liquidityDaiAmount = daiAmount.div(2);
     uint256 liquidityBegoAmount = _calculateSaleQuoteWithPrice(liquidityDaiAmount, begoPrice);
-    require(liquidityBegoAmount <= begoAmount, "Insufficient bego amount.");
+    require(liquidityBegoAmount <= begoAmount.sub(sellAmount), "Insufficient bego amount.");
 
     IERC20(dai).approve(address(router), liquidityDaiAmount);
     IERC20(begoTOKEN).approve(address(router), liquidityBegoAmount);
@@ -420,16 +432,15 @@ contract Presale is Ownable {
       111111111111111111111
     );
     IERC20(dai).safeTransfer(DAO, IERC20(dai).balanceOf(address(this)));
-    IERC20(begoTOKEN).burn(IERC20(begoTOKEN).balanceOf(address(this)));
+    IERC20(begoTOKEN).burn(IERC20(begoTOKEN).balanceOf(address(this)).sub(sellAmount));
     addLiquidityTime = block.timestamp;
   }
 
-  function setAllocation(uint256 _minAmount, uint256 _maxAmount)
+  function setAllocation(uint256 _minAmount)
     external
     onlyOwner
   {
     minAmount = _minAmount;
-    maxAmount = _maxAmount;
   }
 
   function setMaxPurchase(LEVELS level, uint256 _maxAmount)
@@ -466,7 +477,7 @@ contract Presale is Ownable {
     pure
     returns (uint256)
   {
-    return uint256(1e9).mul(purchaseAmount_).mul(price);
+    return uint256(1e9).mul(purchaseAmount_).div(price);
   }
 
   function calculateSaleQuote(uint256 purchaseAmount_)
