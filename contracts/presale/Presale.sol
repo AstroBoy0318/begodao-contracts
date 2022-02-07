@@ -363,7 +363,7 @@ contract Presale is Ownable {
   function getTimeForClaim(address _user) external view returns (uint256) {
     if(claimedTime[_user].add(claimInterval) < block.timestamp)
       return 0;
-    return block.timestamp.sub(claimedTime[_user]);
+    return claimedTime[_user].add(claimInterval).sub(block.timestamp);
   }
 
   function purchase(uint256 _purchaseAmount) external returns (bool) {
@@ -411,6 +411,7 @@ contract Presale is Ownable {
 
   function addLiquidity(IPancakeswapRouter router, uint256 begoPrice) external onlyOwner {
     // To do
+    require(block.timestamp > saleStartTime.add(privateSalePeriod).add(publicSalePeriod), "Presale is not finished yet.");
     openIdo = false;
     uint256 daiAmount = IERC20(dai).balanceOf(address(this));
     uint256 begoAmount = IERC20(begoTOKEN).balanceOf(address(this));

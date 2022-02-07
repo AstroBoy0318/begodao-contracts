@@ -3,8 +3,6 @@ const colors = require('colors');
 
 const OHMContractABI = require('../artifacts/contracts/BegoikoERC20.sol/BegoikoERC20Token.json').abi;
 const IERC20 = require('../artifacts/contracts/BegoikoERC20.sol/IERC20.json').abi;
-const routerAbi = require("../artifacts/contracts/mocks/dexRouter.sol/PancakeswapRouter.json").abi;
-const factoryAbi = require("../artifacts/contracts/mocks/dexfactory.sol/PancakeswapFactory.json").abi;
 
 async function main() {
 
@@ -22,7 +20,7 @@ async function main() {
     const initialIndex = '7675210820';
 
     // First block epoch occurs
-    const firstEpochBlock = '30138071';
+    const firstEpochBlock = '6567007';
 
     // What epoch will be first epoch
     const firstEpochNumber = '1';
@@ -49,77 +47,32 @@ async function main() {
     const bondVestingLength = '33110';
 
     // Min bond price
-    const minBondPrice = '500';
+    const minBondPrice = '0';
 
     // Max bond payout
-    const maxBondPayout = '6239676'
+    const maxBondPayout = '75'
 
     // DAO fee for bond
     const bondFee = '200';
 
     // Max debt bond can take on
-    const maxBondDebt = '16520000000000';
+    const maxBondDebt = '1000000000000000000000000';
 
     // Initial Bond debt
     const intialBondDebt = '0'
 
-    const largeApproval = '100000000000000000000000000000000';
-
-    // Deploy OHM
-    // const OHM = await ethers.getContractFactory('BegoikoERC20Token');
-    // const ohm = await OHM.deploy({nonce : nonce++});
-    // await ohm.deployed();
-
-    // const dai = {address : process.env.DAI};
-
-    // const wFTM = {address : process.env.WFTM};
-
-
-    /* ----------- test ------------- */
-    ////////////////////////////////////
-
-    const initialMint = '10000000000000000000000000000';
-
-    // var exchangeRouter;
-    // var exchangeFactory;
-    // var wETH;
-    // const ohmAddress = "0xFEA12359959B382eD70c3d77Ee1d3ecbA2af5E6A";
+    const ohmAddress = "";
     const daiAddress = "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e";
     const wFTMAddress = "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83";
-    const exchangeRouterAddress = "0xF491e7B69E4244ad4002BC14e878a34207E38c29";
-    const exchangeFactoryAddress = "0x152ee697f2e276fa89e96742e9bb9ab1f2e61be3";
-
-    // const ohm = new ethers.Contract(ohmAddress, OHMContractABI, deployer);
-
-    const dai = new ethers.Contract(daiAddress, IERC20, deployer);
-    // const wFTM = new ethers.Contract(wFTMAddress, IERC20, deployer);
-
-    const exchangeRouter = new ethers.Contract(exchangeRouterAddress, routerAbi, deployer);
-    const exchangeFactory = new ethers.Contract(exchangeFactoryAddress, factoryAbi, deployer);
-
-    // Deploy OHM
-    const OHM = await ethers.getContractFactory('BegoikoERC20Token');
-    const ohm = await OHM.deploy();
-    await ohm.deployed();
-
-    // Deploy DAI
-    // const DAI = await ethers.getContractFactory('DAI');
-    // const dai = await DAI.deploy(0);
-    // await dai.deployed();
-
-    // Deploy 10,000,000 mock DAI and mock Frax
-    // await dai.mint(deployer.address, initialMint);
-
-    {
-
-        tx = await dai.approve(exchangeRouter.address, ethers.utils.parseUnits("1000000", 18));
-
-        tx = await exchangeFactory.createPair(ohm.address, dai.address);
-        var daiLP = await exchangeFactory.getPair(ohm.address, dai.address);
+    const daiLP = "";
+    if (daiLP === "") {
+        console.log("You have to set dai-bego lp address.");
+        return;
     }
 
-    /* ----------- test ------------- */
-    ////////////////////////////////////
+    const ohm = new ethers.Contract(ohmAddress, OHMContractABI, deployer);
+
+    const dai = new ethers.Contract(daiAddress, IERC20, deployer);
 
     var nonce = await provider.getTransactionCount(deployer.address);
     console.log(nonce);
@@ -146,16 +99,6 @@ async function main() {
     const SOHM = await ethers.getContractFactory('sBegoiko');
     const sOHM = await SOHM.deploy({ nonce: nonce++ });
     //await sOHM.deployed();
-
-    // Deploy Presale
-    const Presale = await ethers.getContractFactory('Presale');
-    const presale = await Presale.deploy({ nonce: nonce++ });
-    tx = await presale.initialize(ohm.address, dai.address, '100000000', '100000000000', '10000000000000', DAO.address, { nonce: nonce++ });
-    await tx.wait();
-    tx = await ohm.setPresale(presale.address, { nonce: nonce++ });
-    await tx.wait();
-    tx = await ohm.statePresale(true, { nonce: nonce++ });
-    await tx.wait();
 
     // Deploy Staking
     const Staking = await ethers.getContractFactory('BegoikoStaking');
@@ -259,36 +202,16 @@ async function main() {
 
         tx = await treasury.toggle('4', daiLpBond.address, zeroAddress, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
         // Stake OHM through helper
+
+        console.log("-------------- staking end ----------------");
     }
     console.log("-------------- environment ----------------");
 
-    var tx = await dai.approve(treasury.address, largeApproval, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
-    var tx = await ohm.approve(stakingHelper.address, '1000000000000000000000000', { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
-    var tx = await dai.approve(daiBond.address, largeApproval, { nonce: nonce++, gasLimit: "100000", gasPrice: "200000000000" });
-
-    console.log(" bego.balanceOf", String(await ohm.balanceOf(deployer.address)))
-    console.log(" dai.balanceOf", String(await dai.balanceOf(deployer.address)))
-
-    // console.log("debtRatio", ethers.utils.formatUnits(await daiBond.debtRatio()));
-
-    // console.log("bondPriceInUSD", ethers.utils.formatUnits(await daiBond.bondPriceInUSD()));
-
-    // console.log(ethers.utils.formatUnits(await daiBond.payoutFor("10000000000000000000"), 18));
-
-    // await daiBond.deposit('10000000000000000000', '60000', deployer.address, { nonce: nonce++ });
-    //dai, wFTM - ohm add liquidity
-    console.log("OHM: " + ohm.address);
-    console.log("DAI: " + dai.address);
+    console.log(" bego.balanceOf", String(await ohm.balanceOf(deployer.address)));
+    console.log(" dai.balanceOf", String(await dai.balanceOf(deployer.address)));
     var end = new Date().getTime();
 
-
-    // console.log("LP debtRatio", ethers.utils.formatUnits(await daiLpBond.debtRatio()));
-    // console.log("LP bondPriceInUSD", ethers.utils.formatUnits(await daiLpBond.bondPriceInUSD()));
-
-    console.log("deploy ended ", (Number(end) - startTIme) / 1000)
-
-    // var daiLP = await exchangeFactory.getPair(ohm.address,dai.address);
-    // var wFTMLP = await exchangeFactory.getPair(ohm.address,dai.address);
+    console.log("-------------- deploy ended -----------------", (Number(end) - startTIme) / 1000);
 
     console.log("DAI_ADDRESS: ", dai.address);
     console.log("BEGO_ADDRESS: ", ohm.address);
@@ -298,7 +221,6 @@ async function main() {
     console.log("DISTRIBUTOR_ADDRESS: ", distributor.address);
     console.log("BONDINGCALC_ADDRESS: ", olympusBondingCalculator.address);
     console.log("TREASURY_ADDRESS: ", treasury.address);
-    console.log("PRESALE_ADDRESS: ", presale.address);
 
     console.log("DAI ---------- ");
     console.log('bondAddress: "' + daiBond.address + '"');

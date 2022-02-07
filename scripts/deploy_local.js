@@ -28,7 +28,7 @@ async function main() {
     const firstEpochNumber = '1';
 
     // How many blocks are in each epoch
-    const epochLengthInBlocks = '1000';
+    const epochLengthInBlocks = '2200';
 
     // Initial reward rate for epoch
     const initialRewardRate = '3000';
@@ -45,7 +45,7 @@ async function main() {
     // DAILP bond BCV
     const daiLPBondBCV = '500';
 
-    // Bond vesting length in blocks. 33110 ~ 5 days
+    // Bond vesting length in blocks. 33110 ~ 9 hours
     const bondVestingLength = '33110';
 
     // Min bond price

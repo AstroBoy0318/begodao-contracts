@@ -125,8 +125,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\BondDepository.sol": {
-      "lastModificationDate": 1644113288381,
-      "contentHash": "3a98791dc4d22f610f1154b92178d6b1",
+      "lastModificationDate": 1644119138693,
+      "contentHash": "ec19aca4841467631219c8920c5a943f",
       "sourceName": "contracts/BondDepository.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -157,23 +157,22 @@
       ],
       "artifacts": [
         "Address",
-        "AggregatorV3Interface",
+        "BegoikoBondDepository",
         "Counters",
         "ERC20",
         "ERC20Permit",
         "FixedPoint",
         "FullMath",
+        "IBondCalculator",
         "IERC20",
         "IERC2612Permit",
         "IOwnable",
         "IStaking",
         "IStakingHelper",
         "ITreasury",
-        "IWETH9",
         "Ownable",
         "SafeERC20",
-        "SafeMath",
-        "TimeBondDepository"
+        "SafeMath"
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\node_modules\\hardhat\\console.sol": {
@@ -881,8 +880,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\Presale.sol": {
-      "lastModificationDate": 1644030922565,
-      "contentHash": "cb4a55d3354f82b8faaf0db9f61aa380",
+      "lastModificationDate": 1644209105552,
+      "contentHash": "17071623bedb95c2c013aabfff67b70d",
       "sourceName": "contracts/presale/Presale.sol",
       "solcConfig": {
         "version": "0.7.5",
