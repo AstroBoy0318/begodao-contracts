@@ -595,6 +595,8 @@ contract BegoikoStaking is Ownable {
         @return bool
      */
     function stake( uint _amount, address _recipient ) external returns ( bool ) {
+	    require(_amount > 0, "invalid amount");
+
         rebase();
         
         IERC20( BEGO ).safeTransferFrom( msg.sender, address(this), _amount );
@@ -649,6 +651,8 @@ contract BegoikoStaking is Ownable {
         @param _trigger bool
      */
     function unstake( uint _amount, bool _trigger ) external {
+	    require(_amount > 0, "invalid amount");
+
         if ( _trigger ) {
             rebase();
         }

@@ -237,19 +237,6 @@ contract Ownable is IOwnable {
   }
 }
 
-interface IPancakeswapRouter{
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB, uint liquidity);
-}
-
 contract Presale is Ownable {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
@@ -274,7 +261,7 @@ contract Presale is Ownable {
   uint256 public claimInterval = 1 days;
 
   mapping(address => bool) public boughtTokens;
-  enum LEVELS { NOT_LISTED, CONTEST_RAFFLE, BOOST, BRONZE, PLATIUM, GOLDEN, OG }
+  enum LEVELS { NOT_LISTED, BRONZE, GOLDEN, OG }
   mapping(address => LEVELS) public whiteListed;
   mapping(LEVELS => uint256) public salePrice;
   mapping(LEVELS => uint8) public numberOfMembers;
@@ -326,7 +313,7 @@ contract Presale is Ownable {
   }
 
   function isOpenForUser(address _user) external view returns (bool) {
-    if(!openIdo || boughtTokens[_user])
+    if(!openIdo || (boughtTokens[_user] && purchasedAmount[_user] == maxPurchaseAmount[whiteListed[_user]]))
       return false;
     LEVELS level = whiteListed[_user];
     uint256 privateSaleEndTime = saleStartTime.add(privateSalePeriod);
@@ -334,7 +321,7 @@ contract Presale is Ownable {
     if(level == LEVELS.NOT_LISTED) {
       return block.timestamp >= privateSaleEndTime && block.timestamp <= publicSaleEndTime;
     } else {
-      return block.timestamp < privateSaleEndTime && block.timestamp > saleStartTime;
+      return block.timestamp < publicSaleEndTime && block.timestamp > saleStartTime;
     }
   }
 
@@ -344,7 +331,7 @@ contract Presale is Ownable {
 
   function getMaxPurchaseAmount(address _user) external view returns (uint256) {
     LEVELS level = whiteListed[_user];
-    uint256 maxAmount1 = maxPurchaseAmount[level];
+    uint256 maxAmount1 = maxPurchaseAmount[level].sub(purchasedAmount[_user]);
     uint256 daiVal = IERC20(dai).balanceOf(_user);
     uint256 price = salePrice[level];
     uint256 maxAmount2 = daiVal.div(price).mul(uint256(1e9));
@@ -369,8 +356,8 @@ contract Presale is Ownable {
   function purchase(uint256 _purchaseAmount) external returns (bool) {
     require(openIdo == true, "IDO is closed");
     require(
-      boughtTokens[msg.sender] == false,
-      "You've already participated to the IDO."
+      purchasedAmount[msg.sender] < maxPurchaseAmount[whiteListed[msg.sender]],
+      "You've already purchased max amount."
     );
     uint256 nowTime = block.timestamp;
     uint256 _val = _calculateSaleQuote(_purchaseAmount);
@@ -391,7 +378,7 @@ contract Presale is Ownable {
     boughtTokens[msg.sender] = true;
     IERC20(dai).safeTransferFrom(msg.sender, address(this), _val);
     IERC20(begoTOKEN).mintPRESALE(address(this), _purchaseAmount.mul(2));
-    purchasedAmount[msg.sender] = _purchaseAmount;
+    purchasedAmount[msg.sender] = purchasedAmount[msg.sender].add(_purchaseAmount);
     return true;
   }
 
@@ -407,33 +394,18 @@ contract Presale is Ownable {
     claimedAmount[msg.sender] = claimedAmount[msg.sender].add(claimAmount);
     claimedTime[msg.sender] = block.timestamp;
     return true;
-  }      
+  }
 
-  function addLiquidity(IPancakeswapRouter router, uint256 begoPrice) external onlyOwner {
-    // To do
+  function withdraw() external onlyOwner {
     require(block.timestamp > saleStartTime.add(privateSalePeriod).add(publicSalePeriod), "Presale is not finished yet.");
     openIdo = false;
+    uint256 begoAmount = IERC20(begoTOKEN).balanceOf(address(this)).sub(sellAmount);
     uint256 daiAmount = IERC20(dai).balanceOf(address(this));
-    uint256 begoAmount = IERC20(begoTOKEN).balanceOf(address(this));
+    IERC20(dai).approve(DAO, daiAmount);
+    IERC20(dai).safeTransfer(DAO, daiAmount);
 
-    uint256 liquidityDaiAmount = daiAmount.div(2);
-    uint256 liquidityBegoAmount = _calculateSaleQuoteWithPrice(liquidityDaiAmount, begoPrice);
-    require(liquidityBegoAmount <= begoAmount.sub(sellAmount), "Insufficient bego amount.");
-
-    IERC20(dai).approve(address(router), liquidityDaiAmount);
-    IERC20(begoTOKEN).approve(address(router), liquidityBegoAmount);
-    router.addLiquidity(
-      address(dai),
-      address(begoTOKEN),
-      liquidityDaiAmount,
-      liquidityBegoAmount,
-      0,
-      0,
-      DAO,
-      111111111111111111111
-    );
-    IERC20(dai).safeTransfer(DAO, IERC20(dai).balanceOf(address(this)));
-    IERC20(begoTOKEN).burn(IERC20(begoTOKEN).balanceOf(address(this)).sub(sellAmount));
+    IERC20(begoTOKEN).approve(DAO, begoAmount);
+    IERC20(begoTOKEN).safeTransfer(DAO, begoAmount);
     addLiquidityTime = block.timestamp;
   }
 

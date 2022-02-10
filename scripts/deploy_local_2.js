@@ -123,6 +123,9 @@ async function main() {
 
     const wftmBond = await DAIBond.deploy(ohm.address, wFTMAddress, treasury.address, DAO.address, zeroAddress, { nonce: nonce++ });
 
+    const RedeemHelper = await ethers.getContractFactory('RedeemHelper');
+    const redeemHelper = await RedeemHelper.deploy({ nonce: nonce++ });
+
     console.log("--------------deploy finish----------------")
 
     {
@@ -204,6 +207,13 @@ async function main() {
         // Stake OHM through helper
 
         console.log("-------------- staking end ----------------");
+
+        tx = await redeemHelper.addBondContract(daiBond.address, { nonce: nonce++ });
+        await tx.wait();
+        tx = await redeemHelper.addBondContract(daiLpBond.address, { nonce: nonce++ });
+        await tx.wait();
+        tx = await redeemHelper.addBondContract(wftmBond.address, { nonce: nonce++ });
+        await tx.wait();
     }
     console.log("-------------- environment ----------------");
 
@@ -221,6 +231,7 @@ async function main() {
     console.log("DISTRIBUTOR_ADDRESS: ", distributor.address);
     console.log("BONDINGCALC_ADDRESS: ", olympusBondingCalculator.address);
     console.log("TREASURY_ADDRESS: ", treasury.address);
+    console.log("REDEEM_HELPER_ADDRESS: ", redeemHelper.address);
 
     console.log("DAI ---------- ");
     console.log('bondAddress: "' + daiBond.address + '"');

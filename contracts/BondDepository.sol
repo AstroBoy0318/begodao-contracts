@@ -677,9 +677,6 @@ contract BegoikoBondDepository is Ownable {
         uint lastBlock; // block when last adjustment made
     }
 
-
-
-
     /* ======== INITIALIZATION ======== */
 
     constructor ( 
@@ -798,15 +795,6 @@ contract BegoikoBondDepository is Ownable {
         }
     }
 
-    /**
-     *  @notice set DAO
-     *  @param _DAO address
-     */
-    function setDaoAddress( address _DAO) external onlyPolicy() {
-        require( _DAO != address(0) );
-        DAO = _DAO;
-    }
-
     /* ======== USER FUNCTIONS ======== */
 
     /**
@@ -905,9 +893,6 @@ contract BegoikoBondDepository is Ownable {
             return stakeOrSend( _recipient, _stake, payout );
         }
     }
-
-
-
     
     /* ======== INTERNAL HELPER FUNCTIONS ======== */
 
@@ -962,9 +947,6 @@ contract BegoikoBondDepository is Ownable {
         totalDebt = totalDebt.sub( debtDecay() );
         lastDecay = block.number;
     }
-
-
-
 
     /* ======== VIEW FUNCTIONS ======== */
 
@@ -1100,9 +1082,6 @@ contract BegoikoBondDepository is Ownable {
             pendingPayout_ = payout.mul( percentVested ).div( 10000 );
         }
     }
-
-
-
 
     /* ======= AUXILLIARY ======= */
 

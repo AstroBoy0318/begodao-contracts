@@ -259,12 +259,18 @@ contract BegoikoTreasury is Ownable {
     address[] public rewardManagers; // Push only, beware false-positives. Only for viewing.
     mapping( address => bool ) public isRewardManager;
     mapping( address => uint ) public rewardManagerQueue; // Delays changes to mapping.
+    mapping( address => bool ) public mintableContract;
 
     address public sBEGO;
     uint public sBEGOQueue; // Delays change to sOHM address
     
     uint public totalReserves; // Risk-free value of all assets
     uint public totalDebt;
+
+    modifier onlyMintable () {
+        require(mintableContract[msg.sender], "Sender is not mintable contract.");
+        _;
+    }
 
     constructor (
         address _BEGO,
@@ -281,6 +287,7 @@ contract BegoikoTreasury is Ownable {
         isLiquidityToken[ _BEGODAI ] = false;
         liquidityTokens.push( _BEGODAI );
 
+        totalReserves = totalReserves.add( IERC20( _BEGO ).totalSupply() );
 
         blocksNeededForQueue = _blocksNeededForQueue;
     }
@@ -655,5 +662,20 @@ contract BegoikoTreasury is Ownable {
             }
         }
         return false;
+    }
+    /**
+        @notice set mintable contract
+        @param _contract address
+        @param _mintable bool
+     */
+    function setMintable(address _contract, bool _mintable) external onlyOwner {
+        mintableContract[_contract] = mintable;
+    }
+    /**
+        @notice add total reserve from other contracts which can mint bego
+        @param _amount uint256
+     */
+    function addTotalReserve( uint256 _amount ) external onlyMintable {
+        totalReserves = totalReserves.add( _amount );
     }
 }

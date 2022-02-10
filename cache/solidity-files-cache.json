@@ -125,8 +125,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\BondDepository.sol": {
-      "lastModificationDate": 1644119138693,
-      "contentHash": "ec19aca4841467631219c8920c5a943f",
+      "lastModificationDate": 1644334362083,
+      "contentHash": "8fbf886abc861cfc1afdf6a54a4da373",
       "sourceName": "contracts/BondDepository.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -418,8 +418,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\Staking.sol": {
-      "lastModificationDate": 1642211704734,
-      "contentHash": "60d403780a0a1d1727306d50e058b73e",
+      "lastModificationDate": 1644377169721,
+      "contentHash": "fc380b286540d108600004eaa82154b2",
       "sourceName": "contracts/Staking.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -462,8 +462,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\StakingDistributor.sol": {
-      "lastModificationDate": 1642211704767,
-      "contentHash": "b648d2c5ffcc8e0d9cfb529446e13e3e",
+      "lastModificationDate": 1644465238826,
+      "contentHash": "0b62f175c39df507cce069feebe8edb8",
       "sourceName": "contracts/StakingDistributor.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -838,50 +838,9 @@
         "iBego"
       ]
     },
-    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\pBego.sol": {
-      "lastModificationDate": 1643339331907,
-      "contentHash": "7f9b6e46fff501df3ba12ff03553462b",
-      "sourceName": "contracts/presale/pBego.sol",
-      "solcConfig": {
-        "version": "0.7.5",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "0.7.5"
-      ],
-      "artifacts": [
-        "ERC20",
-        "IERC20",
-        "IOwnable",
-        "Ownable",
-        "SafeMath",
-        "ipBego",
-        "pBego"
-      ]
-    },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\Presale.sol": {
-      "lastModificationDate": 1644209105552,
-      "contentHash": "17071623bedb95c2c013aabfff67b70d",
+      "lastModificationDate": 1644452603521,
+      "contentHash": "ea8090360f3e8cc85095fee7f8ccf23f",
       "sourceName": "contracts/presale/Presale.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -914,7 +873,6 @@
         "Address",
         "IERC20",
         "IOwnable",
-        "IPancakeswapRouter",
         "Ownable",
         "Presale",
         "SafeERC20",
