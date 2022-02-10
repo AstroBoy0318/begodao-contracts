@@ -668,8 +668,8 @@ contract BegoikoTreasury is Ownable {
         @param _contract address
         @param _mintable bool
      */
-    function setMintable(address _contract, bool _mintable) external onlyOwner {
-        mintableContract[_contract] = mintable;
+    function setMintable(address _contract, bool _mintable) external onlyManager {
+        mintableContract[_contract] = _mintable;
     }
     /**
         @notice add total reserve from other contracts which can mint bego

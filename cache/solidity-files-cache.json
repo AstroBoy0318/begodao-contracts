@@ -462,8 +462,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\StakingDistributor.sol": {
-      "lastModificationDate": 1644465238826,
-      "contentHash": "0b62f175c39df507cce069feebe8edb8",
+      "lastModificationDate": 1644466212486,
+      "contentHash": "b648d2c5ffcc8e0d9cfb529446e13e3e",
       "sourceName": "contracts/StakingDistributor.sol",
       "solcConfig": {
         "version": "0.7.5",
@@ -621,8 +621,8 @@
       ]
     },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\Treasury.sol": {
-      "lastModificationDate": 1642568784888,
-      "contentHash": "0252922708b0119cf94ce324dd33677f",
+      "lastModificationDate": 1644503107369,
+      "contentHash": "02925e4a7e066404e265aa99f46f569c",
       "sourceName": "contracts/Treasury.sol",
       "solcConfig": {
         "version": "0.7.5",
