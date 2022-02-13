@@ -326,6 +326,7 @@ contract Policy is IPolicy {
 
 interface ITreasury {
     function mintRewards( address _recipient, uint _amount ) external;
+    function getTotalMintByOthers() external view returns(uint);
 }
 
 contract Distributor is Policy {
@@ -433,7 +434,7 @@ contract Distributor is Policy {
         @return uint
      */
     function nextRewardAt( uint _rate ) public view returns ( uint ) {
-        return IERC20( BEGO ).totalSupply().mul( _rate ).div( 1000000 );
+        return IERC20( BEGO ).totalSupply().sub(ITreasury( treasury ).getTotalMintByOthers()).mul( _rate ).div( 1000000 );
     }
 
     /**

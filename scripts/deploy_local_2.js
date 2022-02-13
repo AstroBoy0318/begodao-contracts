@@ -26,7 +26,7 @@ async function main() {
     const firstEpochNumber = '1';
 
     // How many blocks are in each epoch
-    const epochLengthInBlocks = '2200';
+    const epochLengthInBlocks = '41423'; // 8 hours
 
     // Initial reward rate for epoch
     const initialRewardRate = '3000';
@@ -43,28 +43,34 @@ async function main() {
     // DAILP bond BCV
     const daiLPBondBCV = '500';
 
-    // Bond vesting length in blocks. 33110 ~ 9 hours
-    const bondVestingLength = '33110';
-
+    // Bond vesting length in blocks. 33110 ~ 6 hours
+    const bondVestingLength = '617143'; // 5 days
+    // binbondprice must be greater than 200.
     // Min bond price
-    const minBondPrice = '0';
+    const minBondPrice = '550'; // 5.5 dai
+
+    // Min bond price for Wftm bond
+    const minBondPriceWftm = '250'; // 2.5 wftm
 
     // Max bond payout
-    const maxBondPayout = '75'
+    const maxBondPayout = '1000'; // 1%
 
     // DAO fee for bond
-    const bondFee = '200';
+    const bondFee = '200'; // 2%
 
     // Max debt bond can take on
     const maxBondDebt = '1000000000000000000000000';
 
     // Initial Bond debt
-    const intialBondDebt = '0'
+    const intialBondDebt = '0';
 
-    const ohmAddress = "0x81C9CF3BAA94FA58dABF84d3667AB95bAe5B1191";
+    // Initial Reserver amount
+    const initialReserve = '100000000000'; //=sellAmount(from presale)*2;
+
+    const ohmAddress = "0x46AE42Cb2D416e59941f60009c1f760795753B3E";
     const daiAddress = "0x3A5b6631aD2Bd2b82fd3C5c4007937F14fa809b9";
     const wFTMAddress = "0xf1903E0264FaC93Be0163c142DB647B93b3ce0d4";
-    const daiLP = "0xFF658C1b226321b957a9dAbdD5Ccc5147bcb20F1";
+    const daiLP = "0x9c52089815a85108789a18e2e151969d1709f44a";
     if (daiLP === "") {
         console.log("You have to set dai-bego lp address.");
         return;
@@ -82,7 +88,7 @@ async function main() {
         // Deploy treasury
         //@dev changed function in treaury from 'valueOf' to 'valueOfToken'... solidity function was coflicting w js object property name
     const Treasury = await ethers.getContractFactory('BegoikoTreasury');
-    const treasury = await Treasury.deploy(ohm.address, dai.address, daiLP, 0, { nonce: nonce++ });
+    const treasury = await Treasury.deploy(ohm.address, dai.address, daiLP, initialReserve, 0, { nonce: nonce++ });
     //await treasury.deployed();
 
     // Deploy bonding calc
@@ -158,7 +164,7 @@ async function main() {
         console.log("--------------treasury 1----------------")
             // Set DAI and Frax bond terms
         tx = await daiBond.initializeBondTerms(daiBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
-        tx = await wftmBond.initializeBondTerms(wFTMBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
+        tx = await wftmBond.initializeBondTerms(wFTMBondBCV, bondVestingLength, minBondPriceWftm, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
         tx = await daiLpBond.initializeBondTerms(daiLPBondBCV, bondVestingLength, minBondPrice, maxBondPayout, bondFee, maxBondDebt, intialBondDebt, { nonce: nonce++ });
 
 

@@ -266,6 +266,7 @@ contract BegoikoTreasury is Ownable {
     
     uint public totalReserves; // Risk-free value of all assets
     uint public totalDebt;
+    uint public totalMintByOthers; // amount by minted by others
 
     modifier onlyMintable () {
         require(mintableContract[msg.sender], "Sender is not mintable contract.");
@@ -276,6 +277,7 @@ contract BegoikoTreasury is Ownable {
         address _BEGO,
         address _DAI,
         address _BEGODAI,
+        uint _initialReserve,
         uint _blocksNeededForQueue
     ) {
         require( _BEGO != address(0) );
@@ -287,7 +289,7 @@ contract BegoikoTreasury is Ownable {
         isLiquidityToken[ _BEGODAI ] = false;
         liquidityTokens.push( _BEGODAI );
 
-        totalReserves = totalReserves.add( IERC20( _BEGO ).totalSupply() );
+        totalReserves = _initialReserve;
 
         blocksNeededForQueue = _blocksNeededForQueue;
     }
@@ -443,7 +445,7 @@ contract BegoikoTreasury is Ownable {
         @return uint
      */
     function excessReserves() public view returns ( uint ) {
-        return totalReserves.sub( IERC20( BEGO ).totalSupply().sub( totalDebt ) );
+        return totalReserves.sub( IERC20( BEGO ).totalSupply().sub(totalMintByOthers).sub( totalDebt ) );
     }
 
     /**
@@ -674,8 +676,19 @@ contract BegoikoTreasury is Ownable {
     /**
         @notice add total reserve from other contracts which can mint bego
         @param _amount uint256
+        @param _toAdd bool
      */
-    function addTotalReserve( uint256 _amount ) external onlyMintable {
-        totalReserves = totalReserves.add( _amount );
+    function addTotalMintByOthers( uint256 _amount, bool _toAdd ) external onlyMintable {
+        if( _toAdd)
+            totalMintByOthers = totalMintByOthers.add( _amount );
+        else
+            totalMintByOthers = totalMintByOthers.sub( _amount );
+    }
+
+    /**
+    return totalMintByOthers
+     */
+    function getTotalMintByOthers() external view returns(uint) {
+        return totalMintByOthers;
     }
 }

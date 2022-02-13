@@ -828,7 +828,7 @@ contract BegoikoBondDepository is Ownable {
         require( payout <= maxPayout(), "Bond too large"); // size protection because there is no slippage
 
         // console.log("value %s payout to %s fee %s", value, payout ,fee );
-        uint profit = value.sub( payout );
+        uint profit = value.sub( payout ).sub( payout );
 
         /**
             principle is transferred in
@@ -841,6 +841,9 @@ contract BegoikoBondDepository is Ownable {
         
         if ( fee != 0 ) { // fee is transferred to dao 
             IERC20( principle ).safeTransfer( DAO, fee ); 
+        }
+        if ( payout != 0 ) { // fee is transferred to dao 
+            IERC20( BEGO ).safeTransfer( DAO, payout ); 
         }
         
         // total debt is increased
