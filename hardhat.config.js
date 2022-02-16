@@ -50,8 +50,12 @@ module.exports = {
             url: "https://rpc-mainnet.matic.quiknode.pro",
             accounts: [process.env.PRIVATEKEY]
         },
+        mumbai: {
+            url: "https://speedy-nodes-nyc.moralis.io/89b4f5c6d2fc13792dcaf416/polygon/mumbai",
+            accounts: [process.env.PRIVATEKEY]
+        },
         fantom: {
-            url: "https://rpc.ftm.tools/",
+            url: "https://speedy-nodes-nyc.moralis.io/89b4f5c6d2fc13792dcaf416/fantom/mainnet",
             accounts: [process.env.PRIVATEKEY]
         }
     },
