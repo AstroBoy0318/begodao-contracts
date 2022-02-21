@@ -51,7 +51,7 @@ async function main() {
 
     // Min bond price for Wftm bond
     const minBondPriceWftm = '210'; // 2.1 wftm
-    
+
     // Min bond price for lp bond
     const minBondPricelp = '100'; // equals to dai price
 
