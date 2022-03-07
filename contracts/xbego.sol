@@ -373,6 +373,28 @@ interface IERC20 {
 }
 
 /**
+ * @dev Interface for the optional metadata functions from the ERC20 standard.
+ *
+ * _Available since v4.1._
+ */
+interface IERC20Metadata is IERC20 {
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the symbol of the token.
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the decimals places of the token.
+     */
+    function decimals() external view returns (uint8);
+}
+
+/**
  * @title SafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token
  * contract returns false). Tokens that return no value (and instead revert or
@@ -463,6 +485,451 @@ library SafeERC20 {
         }
     }
 }
+ 
+ /**
+ * @dev Implementation of the {IERC20} interface.
+ *
+ * This implementation is agnostic to the way tokens are created. This means
+ * that a supply mechanism has to be added in a derived contract using {_mint}.
+ * For a generic mechanism see {ERC20PresetMinterPauser}.
+ *
+ * TIP: For a detailed writeup see our guide
+ * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
+ * to implement supply mechanisms].
+ *
+ * We have followed general OpenZeppelin Contracts guidelines: functions revert
+ * instead returning `false` on failure. This behavior is nonetheless
+ * conventional and does not conflict with the expectations of ERC20
+ * applications.
+ *
+ * Additionally, an {Approval} event is emitted on calls to {transferFrom}.
+ * This allows applications to reconstruct the allowance for all accounts just
+ * by listening to said events. Other implementations of the EIP may not emit
+ * these events, as it isn't required by the specification.
+ *
+ * Finally, the non-standard {decreaseAllowance} and {increaseAllowance}
+ * functions have been added to mitigate the well-known issues around setting
+ * allowances. See {IERC20-approve}.
+ */
+contract ERC20 is Context, Ownable, IERC20, IERC20Metadata {
+
+    event UpdateMaxSupply(address indexed user, uint256 _newSupply);
+
+    mapping(address => uint256) private _balances;
+
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    uint256 private _totalSupply;
+    uint256 private _totalBurned;
+    
+    uint256 private _MAXSUPPLY;
+
+    string private _name;
+    string private _symbol;
+
+    /**
+     * @dev Sets the values for {name}, {symbol} and {maxSupply}
+     *
+     * The default value of {decimals} is 18. To select a different value for
+     * {decimals} you should overload it.
+     *
+     * All two of these values are immutable: they can only be set once during
+     * construction.
+     */
+    constructor(string memory name_, string memory symbol_) {
+        _name = name_;
+        _symbol = symbol_;
+        _MAXSUPPLY = 1000 ether;
+    }
+
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
+    }
+
+    /**
+     * @dev Returns the number of decimals used to get its user representation.
+     * For example, if `decimals` equals `2`, a balance of `505` tokens should
+     * be displayed to a user as `5.05` (`505 / 10 ** 2`).
+     *
+     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Ether and Wei. This is the value {ERC20} uses, unless this function is
+     * overridden;
+     *
+     * NOTE: This information is only used for _display_ purposes: it in
+     * no way affects any of the arithmetic of the contract, including
+     * {IERC20-balanceOf} and {IERC20-transfer}.
+     */
+    function decimals() public view virtual override returns (uint8) {
+        return 18;
+    }
+
+    /**
+     * @dev See {IERC20-totalSupply}.
+     */
+    function totalSupply() public view virtual override returns (uint256) {
+        return _totalSupply;
+    }
+    
+    function TotalDestroyed() public view returns (uint256) {
+        return _totalBurned;
+    }
+    
+    function maxSupply() public view returns (uint256) {
+        return _MAXSUPPLY;
+    }
+
+    function updateMaxSupply(uint256 _newMax) external onlyOwner {
+        require(_newMax > _MAXSUPPLY && _newMax > _totalSupply, "err");
+        _MAXSUPPLY = _newMax;
+        emit UpdateMaxSupply(msg.sender, _newMax);
+    }
+
+    /**
+     * @dev See {IERC20-balanceOf}.
+     */
+    function balanceOf(address account) public view virtual override returns (uint256) {
+        return _balances[account];
+    }
+
+    /**
+     * @dev See {IERC20-transfer}.
+     *
+     * Requirements:
+     *
+     * - `recipient` cannot be the zero address.
+     * - the caller must have a balance of at least `amount`.
+     */
+    function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-allowance}.
+     */
+    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    /**
+     * @dev See {IERC20-approve}.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+        _approve(_msgSender(), spender, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-transferFrom}.
+     *
+     * Emits an {Approval} event indicating the updated allowance. This is not
+     * required by the EIP. See the note at the beginning of {ERC20}.
+     *
+     * Requirements:
+     *
+     * - `sender` and `recipient` cannot be the zero address.
+     * - `sender` must have a balance of at least `amount`.
+     * - the caller must have allowance for ``sender``'s tokens of at least
+     * `amount`.
+     */
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public virtual override returns (bool) {
+        _transfer(sender, recipient, amount);
+
+        uint256 currentAllowance = _allowances[sender][_msgSender()];
+        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        unchecked {
+            _approve(sender, _msgSender(), currentAllowance - amount);
+        }
+
+        return true;
+    }
+
+    /**
+     * @dev Atomically increases the allowance granted to `spender` by the caller.
+     *
+     * This is an alternative to {approve} that can be used as a mitigation for
+     * problems described in {IERC20-approve}.
+     *
+     * Emits an {Approval} event indicating the updated allowance.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
+        return true;
+    }
+
+    /**
+     * @dev Atomically decreases the allowance granted to `spender` by the caller.
+     *
+     * This is an alternative to {approve} that can be used as a mitigation for
+     * problems described in {IERC20-approve}.
+     *
+     * Emits an {Approval} event indicating the updated allowance.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     * - `spender` must have allowance for the caller of at least
+     * `subtractedValue`.
+     */
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+        uint256 currentAllowance = _allowances[_msgSender()][spender];
+        require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
+        unchecked {
+            _approve(_msgSender(), spender, currentAllowance - subtractedValue);
+        }
+
+        return true;
+    }
+
+    /**
+     * @dev Moves `amount` of tokens from `sender` to `recipient`.
+     *
+     * This internal function is equivalent to {transfer}, and can be used to
+     * e.g. implement automatic token fees, slashing mechanisms, etc.
+     *
+     * Emits a {Transfer} event.
+     *
+     * Requirements:
+     *
+     * - `sender` cannot be the zero address.
+     * - `recipient` cannot be the zero address.
+     * - `sender` must have a balance of at least `amount`.
+     */
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal virtual {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        _beforeTokenTransfer(sender, recipient, amount);
+
+        uint256 senderBalance = _balances[sender];
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        unchecked {
+            _balances[sender] = senderBalance - amount;
+        }
+        _balances[recipient] += amount;
+
+        emit Transfer(sender, recipient, amount);
+
+        _afterTokenTransfer(sender, recipient, amount);
+    }
+
+    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+     * the total supply.
+     *
+     * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * Requirements:
+     *
+     * - `account` cannot be the zero address.
+     */
+    function _mint(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: mint to the zero address");
+        require(amount != 0, "ERC20: amount must be greater than 0");
+
+        _beforeTokenTransfer(address(0), account, amount);
+
+        _totalSupply += amount;
+        _balances[account] += amount;
+        emit Transfer(address(0), account, amount);
+
+        _afterTokenTransfer(address(0), account, amount);
+    }
+
+    function _burn(address account, uint256 amount) internal virtual {
+        require(account != address(0), "ERC20: burn from the zero address");
+
+        _beforeTokenTransfer(account, address(0), amount);
+
+        uint256 accountBalance = _balances[account];
+        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
+        unchecked {
+            _balances[account] = accountBalance - amount;
+        }
+        _totalBurned += amount;
+        _totalSupply -= amount;
+
+        emit Transfer(account, address(0), amount);
+
+        _afterTokenTransfer(account, address(0), amount);
+    }
+
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+     *
+     * This internal function is equivalent to `approve`, and can be used to
+     * e.g. set automatic allowances for certain subsystems, etc.
+     *
+     * Emits an {Approval} event.
+     *
+     * Requirements:
+     *
+     * - `owner` cannot be the zero address.
+     * - `spender` cannot be the zero address.
+     */
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
+
+    /**
+     * @dev Hook that is called before any transfer of tokens. This includes
+     * minting and burning.
+     *
+     * Calling conditions:
+     *
+     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+     * will be transferred to `to`.
+     * - when `from` is zero, `amount` tokens will be minted for `to`.
+     * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
+     * - `from` and `to` are never both zero.
+     *
+     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
+
+    /**
+     * @dev Hook that is called after any transfer of tokens. This includes
+     * minting and burning.
+     *
+     * Calling conditions:
+     *
+     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+     * has been transferred to `to`.
+     * - when `from` is zero, `amount` tokens have been minted for `to`.
+     * - when `to` is zero, `amount` of ``from``'s tokens have been burned.
+     * - `from` and `to` are never both zero.
+     *
+     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+     */
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
+}
+
+contract xBegoToken is ERC20('xBego Farming', 'xBEGO') {
+
+    address public masterchef;
+    address private DAO = 0x13C82D0eBd9f21384501706b5A30644339c16628;
+
+    mapping(address=>bool) public isEco;
+
+    uint16 public transferTaxRate;
+
+    event SetMasterchef(address indexed newMasterchef);
+    event UpdateTransferTax(uint256 _newTax);
+
+    constructor() {
+        _mint(_msgSender(), uint256(100000000000000000000)); // Initial liquidity, 0.1
+        transferTaxRate = 5000; // Default, 50% Tax
+    }
+
+    modifier onlyMasterchef() {
+        require(_msgSender() == masterchef, "masterchef: caller is not the masterchef");
+        _;
+    }
+
+    function mint(address to, uint256 amount) external onlyMasterchef {
+        _mint(to, amount);
+    }
+
+    function burn(uint256 amount) external {
+        _burn(_msgSender(), amount);
+    }
+
+    function setContracts(address _masterchef) external onlyOwner {
+        masterchef = _masterchef;
+        emit SetMasterchef(masterchef);
+    }
+
+    function setAddress(address _newAdd, bool _isEco) external onlyOwner {
+        isEco[_newAdd] = _isEco;
+    }
+
+    function updateTransferTax(uint16 _newTax) external onlyOwner {
+        require(_newTax > 0 && _newTax <= 10000, "err");
+        transferTaxRate = _newTax;
+        emit UpdateTransferTax(_newTax);
+    }
+
+    function _transfer(address sender, address recipient, uint256 amount) internal virtual override {
+
+        bool isExcludedTransferTax = (sender == address(this) 
+            || recipient == address(this) 
+            || sender == owner() 
+            || recipient == owner() 
+            || sender == DAO 
+            || recipient == DAO 
+            || sender == masterchef 
+            || recipient == masterchef 
+            || isEco[sender] 
+            || isEco[recipient]
+        );
+
+        if (isExcludedTransferTax) {
+
+            super._transfer(sender, recipient, amount);
+
+        } else {
+
+            if (transferTaxRate > 0) {
+
+            uint256 taxAmount = amount * transferTaxRate / 10000;
+            uint256 toDao = amount - taxAmount;
+            super._transfer(sender, DAO, toDao);
+
+            uint256 sendAmount = amount - toDao;
+            require(amount == sendAmount + taxAmount, "transfer: invalid value");
+
+            super._transfer(sender, recipient, sendAmount);
+
+            } else {
+
+            super._transfer(sender, recipient, amount);
+
+            }
+        }
+    }
+}
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -523,10 +990,6 @@ abstract contract ReentrancyGuard {
     }
 }
 
-interface iBego {
-  function mintFarm(address account_, uint256 ammount_) external;
-}
-
 contract Masterchef is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -536,26 +999,23 @@ contract Masterchef is Ownable, ReentrancyGuard {
     }
 
     struct PoolInfo {
-        IERC20 lpToken;               
+        IERC20 lpToken;    
         uint256 allocPoint;            
         uint256 lastRewardperSec;     
-        uint256 accBegoPerShare;    
+        uint256 accxbegoPerShare;    
         uint16 depositFeeBP;
         uint256 lpSupply;
     }
     
-    address public immutable bego;
+    xBegoToken public immutable xbego;
 
     uint256 public startTime;
     address public feeAdd;
-
-    uint256 private constant MAXMINT = 10000 ether;
-    uint256 private TOTALMINTED;
-    bool public isMintable;
     
-    uint256 public begoPerSec = 0.01 ether;
-    uint256 public constant MAX_PERSEC = 0.1 ether;
-    uint256 public constant MIN_PERSEC = 0.0001 ether;
+    uint256 private _MAXSUPPLY;
+    uint256 public xbegoPerSec = 0.0001 ether;
+    uint256 public constant MAX_PERSEC = 0.5 ether;
+    uint256 public constant MIN_PERSEC = 0.00001 ether;
     
     uint256 public totalAllocPoint = 0;
     
@@ -567,27 +1027,21 @@ contract Masterchef is Ownable, ReentrancyGuard {
         require(poolExistence[_lpToken] == false, "nonDuplicated: duplicated");
         _;
     }
-
+    
     event UpdateFeeAddress(address indexed user, address indexed newAddress);
-    event UpdateMintable(bool isMintable);
     event Add(uint256 indexed pid, address lpToken, uint256 allocPoint, uint16 depositFeeBP);
     event Set(uint256 indexed pid, address lpToken, uint256 allocPoint, uint16 depositFeeBP);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event UpdateStartTime(uint256 newStartTime);
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event UpdateEmissionRate(address indexed user, uint256 begoPerSec);
+    event UpdateEmissionRate(address indexed user, uint256 xbegoPerSec);
 
-    constructor(address _bego, uint256 _startTime, address _feeAdd) {
-        bego = _bego;
+    constructor(xBegoToken _xbego, uint256 _startTime, address _feeAdd) {
+        xbego = _xbego;
         startTime = _startTime;
         feeAdd = _feeAdd;
-
-        isMintable = false;
-    }
-
-    function TotalMinted() external view returns (uint256) {
-        return TOTALMINTED;
+        _MAXSUPPLY = _xbego.maxSupply();
     }
 
     function poolLength() external view returns (uint256) {
@@ -601,27 +1055,22 @@ contract Masterchef is Ownable, ReentrancyGuard {
         }
     }
 
-    function safeBegoTransfer(address _to, uint256 _amount) internal {
-        uint256 begoBalance = IERC20(bego).balanceOf(address(this));
+    function safexbegoTransfer(address _to, uint256 _amount) internal {
+        uint256 xbegoBalance = xbego.balanceOf(address(this));
         bool transferSuccess = false;
-        if (_amount > begoBalance) {
-            transferSuccess = IERC20(bego).transfer(_to, begoBalance);
+        if (_amount > xbegoBalance) {
+            transferSuccess = xbego.transfer(_to, xbegoBalance);
         } else {
-            transferSuccess = IERC20(bego).transfer(_to, _amount);
+            transferSuccess = xbego.transfer(_to, _amount);
         }
-        require(transferSuccess, "safeBegoTransfer: Transfer failed");
+        require(transferSuccess, "Safe xBego Transfer: Transfer failed");
     }
     
-    function updateEmissionRate(uint256 _begoPerSec) external onlyOwner {
-        require(_begoPerSec >= MIN_PERSEC && _begoPerSec <= MAX_PERSEC, "Bad Emissions per second");
+    function updateEmissionRate(uint256 _xbegoPerSec) external onlyOwner {
+        require(_xbegoPerSec >= MIN_PERSEC && _xbegoPerSec <= MAX_PERSEC, "Bad emissions per second");
         massUpdatePools();
-        begoPerSec = _begoPerSec;
-        emit UpdateEmissionRate(msg.sender, _begoPerSec);
-    }
-
-    function updateMintable(bool _begoMintable) external onlyOwner {
-        isMintable = _begoMintable;
-        emit UpdateMintable(_begoMintable);
+        xbegoPerSec = _xbegoPerSec;
+        emit UpdateEmissionRate(msg.sender, _xbegoPerSec);
     }
 
     function add(uint256 _allocPoint, IERC20 _lpToken, uint16 _depositFeeBP, bool _withUpdate) external onlyOwner nonDuplicated(_lpToken) {
@@ -636,7 +1085,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
             allocPoint: _allocPoint,
             depositFeeBP: _depositFeeBP,
             lastRewardperSec: lastRewardperSec,
-            accBegoPerShare: 0,
+            accxbegoPerShare: 0,
             lpSupply: 0
         }));
         
@@ -653,32 +1102,32 @@ contract Masterchef is Ownable, ReentrancyGuard {
     }
 
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
-        if (TOTALMINTED >= MAXMINT) { 
+        if (TOTALSUPPLY() >= maxSupply()) { 
             return 0; 
         }
         return _to - _from;
     }
 
-    function pendingBego(uint256 _pid, address _user) external view returns (uint256) {
+    function pendingxbego(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accBegoPerShare = pool.accBegoPerShare;
+        uint256 accxbegoPerShare = pool.accxbegoPerShare;
 
         if (block.timestamp > pool.lastRewardperSec && pool.lpSupply != 0 && totalAllocPoint > 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardperSec, block.timestamp);
-            uint256 begoReward = (multiplier * begoPerSec * pool.allocPoint) / totalAllocPoint;
-             if (begoReward + TOTALMINTED > MAXMINT) {
-                begoReward = MAXMINT - TOTALMINTED;
+            uint256 xbegoReward = (multiplier * xbegoPerSec * pool.allocPoint) / totalAllocPoint;
+            if (xbegoReward + TOTALSUPPLY() > maxSupply()) {
+                xbegoReward = maxSupply() - TOTALSUPPLY();
             }
-            accBegoPerShare += begoReward * 1e18 / pool.lpSupply;
+            accxbegoPerShare += xbegoReward * 1e18 / pool.lpSupply;
         }
-        return ((user.amount * accBegoPerShare) / 1e18) - user.rewardDebt;
+        return ((user.amount * accxbegoPerShare) / 1e18) - user.rewardDebt;
     }
 
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
         
-        if (block.timestamp <= pool.lastRewardperSec || startTime > block.timestamp) { 
+        if (block.timestamp <= pool.lastRewardperSec) { 
             return;
         }
         
@@ -688,21 +1137,16 @@ contract Masterchef is Ownable, ReentrancyGuard {
                 return;
         }
 
-        uint256 begoReward = (multiplier * begoPerSec * pool.allocPoint) / totalAllocPoint;
+        uint256 xbegoReward = (multiplier * xbegoPerSec * pool.allocPoint) / totalAllocPoint;
         
-        if (isMintable && begoReward > 0) {
-
-            if (TOTALMINTED + begoReward <= MAXMINT) {
-                iBego(bego).mintFarm(address(this), begoReward);
-                TOTALMINTED += begoReward;
-            } else {
-                begoReward = MAXMINT - TOTALMINTED;
-                iBego(bego).mintFarm(address(this), begoReward);
-                TOTALMINTED += begoReward;
-            }
+        if (TOTALSUPPLY() + xbegoReward <= maxSupply()) {
+            xbego.mint(address(this), xbegoReward);
+        } else {
+            xbegoReward = maxSupply() - TOTALSUPPLY();
+            xbego.mint(address(this), xbegoReward);
         }
 
-        pool.accBegoPerShare += begoReward * 1e18 / pool.lpSupply;
+        pool.accxbegoPerShare += xbegoReward * 1e18 / pool.lpSupply;
         pool.lastRewardperSec = block.timestamp;
     }
     
@@ -712,10 +1156,10 @@ contract Masterchef is Ownable, ReentrancyGuard {
         updatePool(_pid);
         
         if (user.amount > 0) {
-            uint256 pending = ((user.amount * pool.accBegoPerShare) / 1e18) - user.rewardDebt;
+            uint256 pending = ((user.amount * pool.accxbegoPerShare) / 1e18) - user.rewardDebt;
             
             if (pending > 0) {
-                safeBegoTransfer(msg.sender, pending);
+                safexbegoTransfer(msg.sender, pending);
             }
         }
 
@@ -735,7 +1179,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
                 pool.lpSupply += _amount;
             }
         }
-        user.rewardDebt = (user.amount * pool.accBegoPerShare) / 1e18;
+        user.rewardDebt = (user.amount * pool.accxbegoPerShare) / 1e18;
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -744,10 +1188,10 @@ contract Masterchef is Ownable, ReentrancyGuard {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "Withdraw: not good");
         updatePool(_pid);
-        uint256 pending = ((user.amount * pool.accBegoPerShare) / 1e18) - user.rewardDebt;
+        uint256 pending = ((user.amount * pool.accxbegoPerShare) / 1e18) - user.rewardDebt;
         
         if (pending > 0) {
-            safeBegoTransfer(msg.sender, pending);
+            safexbegoTransfer(msg.sender, pending);
         }
         
         if (_amount > 0) {
@@ -756,7 +1200,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
             pool.lpToken.safeTransfer(msg.sender, _amount);
         }
         
-        user.rewardDebt = (user.amount * pool.accBegoPerShare) / 1e18;
+        user.rewardDebt = (user.amount * pool.accxbegoPerShare) / 1e18;
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -771,10 +1215,17 @@ contract Masterchef is Ownable, ReentrancyGuard {
         user.amount = 0;
         user.rewardDebt = 0;
         pool.lpSupply -= amount;
-
         pool.lpToken.safeTransfer(msg.sender, amount);
 
         emit EmergencyWithdraw(msg.sender, _pid, amount);
+    }
+
+    function TOTALSUPPLY() internal view returns (uint256) {
+        return xbego.totalSupply();
+    }
+
+    function maxSupply() internal view returns (uint256) {
+        return xbego.maxSupply();
     }
 
     function updateFeeAddress(address _feeAdd) external onlyOwner {

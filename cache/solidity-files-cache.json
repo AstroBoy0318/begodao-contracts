@@ -796,48 +796,6 @@
         "wBEGO"
       ]
     },
-    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\FarmingChef.sol": {
-      "lastModificationDate": 1642900141543,
-      "contentHash": "8a0e1d5fbddba9c838422a5b6ebbc75c",
-      "sourceName": "contracts/FarmingChef.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "Address",
-        "Context",
-        "IERC20",
-        "Masterchef",
-        "Ownable",
-        "ReentrancyGuard",
-        "SafeERC20",
-        "iBego"
-      ]
-    },
     "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\presale\\Presale.sol": {
       "lastModificationDate": 1644452603521,
       "contentHash": "ea8090360f3e8cc85095fee7f8ccf23f",
@@ -877,6 +835,91 @@
         "Presale",
         "SafeERC20",
         "SafeMath"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\xbego.sol": {
+      "lastModificationDate": 1646621184681,
+      "contentHash": "79ae6e74a24355ee6192132f29bedc60",
+      "sourceName": "contracts/xbego.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "ERC20",
+        "IERC20",
+        "IERC20Metadata",
+        "Masterchef",
+        "Ownable",
+        "ReentrancyGuard",
+        "SafeERC20",
+        "xBegoToken"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\stkpool.sol": {
+      "lastModificationDate": 1646233269329,
+      "contentHash": "bc24e8cfd147173cfec5242a6b445c7b",
+      "sourceName": "contracts/stkpool.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "IERC20",
+        "Ownable",
+        "ReentrancyGuard",
+        "SafeERC20",
+        "StakingPool"
       ]
     }
   }
