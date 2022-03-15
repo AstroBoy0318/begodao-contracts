@@ -513,11 +513,11 @@ library SafeERC20 {
  */
 contract ERC20 is Context, Ownable, IERC20, IERC20Metadata {
 
-    event UpdateMaxSupply(address indexed user, uint256 _newSupply);
-
     mapping(address => uint256) private _balances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
+
+    event UpdateMaxSupply(address indexed user, uint256 _newSupply);
 
     uint256 private _totalSupply;
     uint256 private _totalBurned;
@@ -846,20 +846,20 @@ contract ERC20 is Context, Ownable, IERC20, IERC20Metadata {
     ) internal virtual {}
 }
 
-contract xBegoToken is ERC20('xBego Farming', 'xBEGO') {
+contract xBegoToken is ERC20('el xBegi2', 'xBegii') {
 
     address public masterchef;
-    address private DAO = 0x13C82D0eBd9f21384501706b5A30644339c16628;
+    address private DAO = 0x7DE7FF87E545AF1091B0d370A60f6416e6A2C017;
 
     mapping(address=>bool) public isEco;
 
     uint16 public transferTaxRate;
 
     event SetMasterchef(address indexed newMasterchef);
-    event UpdateTransferTax(uint256 _newTax);
+    event UpdateTransferTax(uint16 _newTax);
 
     constructor() {
-        _mint(_msgSender(), uint256(100000000000000000000)); // Initial liquidity, 0.1
+        _mint(_msgSender(), uint256(100000000000000000000)); // pre-mint for initial liquidity, 0.1
         transferTaxRate = 5000; // Default, 50% Tax
     }
 
@@ -876,7 +876,7 @@ contract xBegoToken is ERC20('xBego Farming', 'xBEGO') {
         _burn(_msgSender(), amount);
     }
 
-    function setContracts(address _masterchef) external onlyOwner {
+    function setMasterchef(address _masterchef) external onlyOwner {
         masterchef = _masterchef;
         emit SetMasterchef(masterchef);
     }
@@ -886,9 +886,9 @@ contract xBegoToken is ERC20('xBego Farming', 'xBEGO') {
     }
 
     function updateTransferTax(uint16 _newTax) external onlyOwner {
-        require(_newTax > 0 && _newTax <= 10000, "err");
+        require(_newTax <= 9000, "updateTransferTax: Invalid Value");
         transferTaxRate = _newTax;
-        emit UpdateTransferTax(_newTax);
+        emit UpdateTransferTax(transferTaxRate);
     }
 
     function _transfer(address sender, address recipient, uint256 amount) internal virtual override {
@@ -915,11 +915,11 @@ contract xBegoToken is ERC20('xBego Farming', 'xBEGO') {
 
             uint256 taxAmount = amount * transferTaxRate / 10000;
             uint256 toDao = amount - taxAmount;
-            super._transfer(sender, DAO, toDao);
-
             uint256 sendAmount = amount - toDao;
+
             require(amount == sendAmount + taxAmount, "transfer: invalid value");
 
+            super._transfer(sender, DAO, toDao);
             super._transfer(sender, recipient, sendAmount);
 
             } else {
@@ -1012,12 +1012,13 @@ contract Masterchef is Ownable, ReentrancyGuard {
     uint256 public startTime;
     address public feeAdd;
     
-    uint256 private _MAXSUPPLY;
     uint256 public xbegoPerSec = 0.0001 ether;
     uint256 public constant MAX_PERSEC = 0.5 ether;
     uint256 public constant MIN_PERSEC = 0.00001 ether;
+
+    uint256 public immutable MAXSUPPLY;
     
-    uint256 public totalAllocPoint = 0;
+    uint256 public totalAllocPoint;
     
     PoolInfo[] public poolInfo;
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
@@ -1041,7 +1042,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
         xbego = _xbego;
         startTime = _startTime;
         feeAdd = _feeAdd;
-        _MAXSUPPLY = _xbego.maxSupply();
+        MAXSUPPLY = _xbego.maxSupply();
     }
 
     function poolLength() external view returns (uint256) {
@@ -1102,7 +1103,7 @@ contract Masterchef is Ownable, ReentrancyGuard {
     }
 
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
-        if (TOTALSUPPLY() >= maxSupply()) { 
+        if (TOTALSUPPLY() >= MAXSUPPLY) { 
             return 0; 
         }
         return _to - _from;
@@ -1116,8 +1117,8 @@ contract Masterchef is Ownable, ReentrancyGuard {
         if (block.timestamp > pool.lastRewardperSec && pool.lpSupply != 0 && totalAllocPoint > 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardperSec, block.timestamp);
             uint256 xbegoReward = (multiplier * xbegoPerSec * pool.allocPoint) / totalAllocPoint;
-            if (xbegoReward + TOTALSUPPLY() > maxSupply()) {
-                xbegoReward = maxSupply() - TOTALSUPPLY();
+            if (xbegoReward + TOTALSUPPLY() > MAXSUPPLY) {
+                xbegoReward = MAXSUPPLY - TOTALSUPPLY();
             }
             accxbegoPerShare += xbegoReward * 1e18 / pool.lpSupply;
         }
@@ -1139,10 +1140,10 @@ contract Masterchef is Ownable, ReentrancyGuard {
 
         uint256 xbegoReward = (multiplier * xbegoPerSec * pool.allocPoint) / totalAllocPoint;
         
-        if (TOTALSUPPLY() + xbegoReward <= maxSupply()) {
+        if (TOTALSUPPLY() + xbegoReward <= MAXSUPPLY) {
             xbego.mint(address(this), xbegoReward);
         } else {
-            xbegoReward = maxSupply() - TOTALSUPPLY();
+            xbegoReward = MAXSUPPLY - TOTALSUPPLY();
             xbego.mint(address(this), xbegoReward);
         }
 
@@ -1222,10 +1223,6 @@ contract Masterchef is Ownable, ReentrancyGuard {
 
     function TOTALSUPPLY() internal view returns (uint256) {
         return xbego.totalSupply();
-    }
-
-    function maxSupply() internal view returns (uint256) {
-        return xbego.maxSupply();
     }
 
     function updateFeeAddress(address _feeAdd) external onlyOwner {

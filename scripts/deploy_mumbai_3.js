@@ -24,12 +24,12 @@ async function main() {
     const _masterchef = await ethers.getContractFactory('Masterchef');
     const masterchef = await _masterchef.deploy(xbego.address, stakingStartTime, deployer.address, { nonce: nonce++ });
 
-    var tx = await xbego.setContracts(masterchef.address, { nonce: nonce++ });
+    var tx = await xbego.setMasterchef(masterchef.address, { nonce: nonce++ });
     await tx.wait();
 
     const _stakingPool = await ethers.getContractFactory('StakingPool');
-    const stakingPool_1 = await _stakingPool.deploy(xbego.address, daiAddress, "1000000000000000", stakingStartTime, deployer.address, { nonce: nonce++ });
-    const stakingPool_2 = await _stakingPool.deploy(xbego.address, begoAddress, "100000000", stakingStartTime, deployer.address, { nonce: nonce++ });
+    const stakingPool_1 = await _stakingPool.deploy(xbego.address, daiAddress, "10000000000000", stakingStartTime, deployer.address, { nonce: nonce++ });
+    const stakingPool_2 = await _stakingPool.deploy(xbego.address, begoAddress, "10000000", stakingStartTime, deployer.address, { nonce: nonce++ });
 
     var end = new Date().getTime();
 
@@ -38,6 +38,17 @@ async function main() {
     console.log("MASTERCHEF_ADDRESS: ", masterchef.address);
     console.log("STAKING_POOL_1: ", stakingPool_1.address);
     console.log("STAKING_POOL_2: ", stakingPool_2.address);
+
+    await hre.run("verify:verify", {
+        address: xbego.address
+    });
+
+    await hre.run("verify:verify", {
+        address: masterchef.address,
+        constructorArguments: [
+            xbego.address, stakingStartTime, deployer.address
+        ],
+    });
 }
 
 main()
