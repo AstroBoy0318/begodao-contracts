@@ -921,6 +921,139 @@
         "SafeERC20",
         "StakingPool"
       ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\lottery\\referral.sol": {
+      "lastModificationDate": 1631851213355,
+      "contentHash": "be3b82437a90938f4f7fc28dd0bd28b4",
+      "sourceName": "contracts/lottery/referral.sol",
+      "solcConfig": {
+        "version": "0.7.5",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "IBEP20",
+        "IRefferal",
+        "Ownable",
+        "Refferal",
+        "SafeBEP20",
+        "SafeMath"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\lottery\\lottery2.sol": {
+      "lastModificationDate": 1647522476737,
+      "contentHash": "19755c6b9d472dab2c8c2cd6f2029d68",
+      "sourceName": "contracts/lottery/lottery2.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.4",
+        "^0.8.4",
+        "^0.8.4"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "IERC20",
+        "IRandomNumberGenerator",
+        "IReferral",
+        "IxTokenLottery",
+        "Lottery",
+        "Ownable",
+        "ReentrancyGuard",
+        "SafeERC20"
+      ]
+    },
+    "E:\\Work\\2022.1.4\\olympus-contracts1.2\\contracts\\lottery\\randomgenerator2.sol": {
+      "lastModificationDate": 1647522373793,
+      "contentHash": "f97c384e6d05bc31b11238cbbcbc6961",
+      "sourceName": "contracts/lottery/randomgenerator2.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "AggregatorV3Interface",
+        "Context",
+        "ILottery",
+        "Ownable",
+        "RandomGenerator"
+      ]
     }
   }
 }
